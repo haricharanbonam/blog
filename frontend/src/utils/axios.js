@@ -29,10 +29,13 @@ API.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        const refreshRes = await axios.get("/user/refresh", {
+        const refreshRes = await axios.get("/user/refresh-token", {
           withCredentials: true,
         });
-
+        console.log("Refreshing access token...");
+        if (refreshRes.status !== 200) {
+          throw new Error("Failed to refresh access token");
+        }
         const newAccessToken = refreshRes.data.accessToken;
         sessionStorage.setItem("accessToken", newAccessToken);
 

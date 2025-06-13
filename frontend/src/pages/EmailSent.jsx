@@ -17,7 +17,12 @@ const EmailSent = ({ email }) => {
         <p className="text-sm text-gray-500">
           Please check your inbox and click on the link to verify your email.
         </p>
-        <p className="text-sm text-gray-500">Click Here To Login</p>
+        <p
+          onClick={() => (window.location.href = "/login")}
+          className="text-md font-bold cursor-pointer text-blue-500"
+        >
+          Click Here To Login
+        </p>
       </div>
     </div>
   );

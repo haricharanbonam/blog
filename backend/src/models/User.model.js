@@ -47,6 +47,22 @@ const userSchema = new mongoose.Schema(
         ref: "Blog",
       },
     ],
+    myPosts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Blog",
+      },
+    ],
+    aboutme:
+    {
+      type:String,
+      default:""
+    },
+    Profession:
+    {
+      type:String,
+      default:""
+    }
   },
 
   { timestamps: true }

@@ -18,6 +18,11 @@ const blogSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    coverImage: {
+      type: String,
+      required: true,
+      default: "https://via.placeholder.com/150",
+    },
     comments: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -26,7 +31,8 @@ const blogSchema = new mongoose.Schema(
     ],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
     dislikes: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },    ],
+      { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
+    ],
 
     interests: {
       type: [String],
@@ -42,6 +48,12 @@ const blogSchema = new mongoose.Schema(
         "Entertainment",
         "Sports",
         "Other",
+        "JavaScript",
+        "Python",
+        "Java",
+        "Backend",
+        "SQL",
+        "DSA",
       ],
     },
   },

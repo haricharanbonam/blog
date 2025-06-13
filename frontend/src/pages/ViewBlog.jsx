@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../utils/axios";
 import moment from "moment";
-
+import ReactMarkdown from "react-markdown";
+import Markdown from "react-markdown";
+import MarkdownRenderer from "../utils/MarkDownRenderer";
 const ViewBlog = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -10,7 +12,8 @@ const ViewBlog = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [comment, setComment] = useState("");
-
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [liked, setLiked] = useState(false);
   useEffect(() => {
     const fetchBlog = async () => {
       try {
@@ -24,12 +27,11 @@ const ViewBlog = () => {
         setLoading(false);
       }
     };
-
     fetchBlog();
   }, [id]);
-
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
+    setCommentLoading(true);
     try {
       const res = await API.post(
         `/blog/comment/${id}`,
@@ -38,11 +40,35 @@ const ViewBlog = () => {
       );
       setBlog((prev) => ({
         ...prev,
-        comments: [...prev.comments, res.data.data],
+        comments: [...(prev?.comments || []), res.data.data],
       }));
+
       setComment("");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to post comment");
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+  const handleLike = async () => {
+    try {
+      const res = await API.put(
+        `/blog/like/${id}`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+
+      setBlog((prev) => ({
+        ...prev,
+        likedByCurrentUser: !prev.likedByCurrentUser,
+        likesCount: prev.likedByCurrentUser
+          ? prev.likesCount - 1
+          : prev.likesCount + 1,
+      }));
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to like blog");
     }
   };
 
@@ -52,10 +78,9 @@ const ViewBlog = () => {
   if (!blog) return <div className="text-center mt-10">Blog not found</div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Back Button */}
+    <div className="max-w-4xl mx-auto px-4 py-8 text-white">
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => navigate("/")}
         className="flex items-center text-indigo-600 dark:text-indigo-400 mb-6 hover:underline"
       >
         <svg
@@ -73,13 +98,15 @@ const ViewBlog = () => {
         Back to blogs
       </button>
 
-      {/* Blog Content */}
       <article className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-        {/* Author Info */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            {blog.title}
+          </h1>
+
           <div className="flex items-center">
             <div className="bg-indigo-100 dark:bg-indigo-900 h-12 w-12 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-semibold text-xl">
-              {blog.author.fullName.charAt(0)}
+              {blog.author.fullName.charAt(0).toUpperCase()}
             </div>
             <div className="ml-4">
               <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
@@ -92,15 +119,21 @@ const ViewBlog = () => {
           </div>
         </div>
 
-        {/* Blog Content */}
+        {blog.coverImage && (
+          <img
+            src={blog.coverImage}
+            alt="cover"
+            className="w-full h-64 object-cover"
+          />
+        )}
+
         <div className="p-6">
           <div className="prose dark:prose-invert max-w-none">
-            <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">
-              {blog.content}
-            </p>
+            <div className="prose dark:prose-invert max-w-none">
+              <MarkdownRenderer content={blog.content} />
+            </div>
           </div>
 
-          {/* Interests */}
           <div className="mt-6 flex flex-wrap gap-2">
             {blog.interests.map((interest, index) => (
               <span
@@ -112,9 +145,18 @@ const ViewBlog = () => {
             ))}
           </div>
 
-          {/* Likes/Dislikes */}
           <div className="mt-6 flex items-center space-x-4">
-            <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400">
+            <button
+              className={`flex items-center space-x-1 
+    ${
+      blog.likedByCurrentUser
+        ? "text-red-500"
+        : "text-gray-600 dark:text-gray-400"
+    }
+    hover:text-red-500 dark:hover:text-red-400
+  `}
+              onClick={handleLike}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5"
@@ -129,6 +171,7 @@ const ViewBlog = () => {
               </svg>
               <span>{blog.likesCount}</span>
             </button>
+
             <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -147,13 +190,12 @@ const ViewBlog = () => {
           </div>
         </div>
 
-        {/* Comments Section */}
+        {/* Comments */}
         <div className="border-t border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
             Comments ({blog.comments.length})
           </h3>
 
-          {/* Comment Form */}
           <form onSubmit={handleCommentSubmit} className="mb-6">
             <div className="flex space-x-2">
               <input
@@ -166,14 +208,37 @@ const ViewBlog = () => {
               />
               <button
                 type="submit"
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center justify-center"
+                disabled={commentLoading}
               >
-                Post
+                {commentLoading ? (
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                    ></path>
+                  </svg>
+                ) : (
+                  "Post"
+                )}
               </button>
             </div>
           </form>
 
-          {/* Comments List */}
           <div className="space-y-4">
             {blog.comments.length === 0 ? (
               <p className="text-gray-500 dark:text-gray-400">
@@ -183,13 +248,13 @@ const ViewBlog = () => {
               blog.comments.map((comment) => (
                 <div key={comment._id} className="flex space-x-3">
                   <div className="bg-gray-200 dark:bg-gray-700 h-10 w-10 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-semibold">
-                    {comment.author.fullName.charAt(0)}
+                    {comment?.author?.fullName.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
                     <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-gray-800 dark:text-white">
-                          {comment.author.fullName}
+                          {comment?.author?.fullName}
                         </h4>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           {moment(comment.createdAt).fromNow()}

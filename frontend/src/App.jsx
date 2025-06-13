@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import Login from "./pages/Login";
 import Blog from "./pages/Blog";
 import PrivateRoute from "./components/Auth";
@@ -10,54 +14,67 @@ import Navbar from "./components/NavBar";
 import NotFound from "./pages/NotFound";
 import PublicRoute from "./components/PublicRoute";
 import useAuthStatus from "./hooks/useAuth";
-function App() {
-  const { isLoggedIn } = useAuthStatus();
+import CreateBlog from "./pages/createBlog";
+import ProfileCompletion from "./pages/ProfileCompletion";
+import Profile from "./pages/Profile";
 
+function AppWrapper() {
   return (
     <>
-    
-      <Navbar isLoggedIn={isLoggedIn} />
       <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignupForm />} />
         <Route
-          path="/login"
+          path="/"
           element={
-            <PublicRoute isAuthenticated={isLoggedIn}>
-              <Login />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            <PublicRoute isAuthenticated={isLoggedIn}>
-              <SignupForm />
-            </PublicRoute>
-          }
-        />
-
-        <Route
-          path="/blog"
-          element={
-            <PrivateRoute isAuthenticated={isLoggedIn}>
+            <PrivateRoute>
               <Blog />
             </PrivateRoute>
           }
         />
-
         <Route
           path="/blog/:id"
           element={
-            <PrivateRoute isAuthenticated={isLoggedIn}>
+            <PrivateRoute>
               <ViewBlog />
             </PrivateRoute>
           }
         />
-
+        <Route
+          path="/complete-profile"
+          element={
+            <PrivateRoute>
+              <ProfileCompletion />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile/:username"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
         <Route path="/email-sent" element={<EmailSentWrapper />} />
         <Route path="*" element={<NotFound />} />
+        <Route
+          path="/create"
+          element={
+            <PrivateRoute>
+              <CreateBlog />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <AppWrapper />
+    </Router>
+  );
+}

@@ -8,18 +8,16 @@ import jwt from "jsonwebtoken";
 
 const generateAccessTokenAndRefreshTokens = async (userId) => {
   try {
-    console.log(userId);
     const user = await User.findById(userId);
-    console.log(user);
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
-  } catch (err) {
+  } catch (error) {
     throw new ApiError(
       500,
-      "Something went wrong while generating refresh and access tokens"
+      "Something went wrong while generating referesh and access token"
     );
   }
 };
@@ -137,50 +135,48 @@ const logoutUser = asyncHandler(async (req, res) => {
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
+
   if (!incomingRefreshToken) {
-    throw new ApiError(401, "Unauthorized request");
+    throw new ApiError(401, "unauthorized request");
   }
+
   try {
-    const decoded = jwt.verify(
+    const decodedToken = jwt.verify(
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
 
-    const user = await User.findById(decoded?._id);
+    const user = await User.findById(decodedToken?._id);
+
     if (!user) {
       throw new ApiError(401, "Invalid refresh token");
     }
 
-    if (incomingRefreshToken !== user.refreshToken) {
-      throw new ApiError(401, "Refresh token is expired or already used");
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "Refresh token is expired or used");
     }
-
-    const { accessToken, newrefreshToken } =
-      generateAccessTokenAndRefreshTokens(user._id);
 
     const options = {
       httpOnly: true,
-      secure: true, //
+      secure: true,
     };
+
+    const { accessToken, refreshToken } =
+      await generateAccessTokenAndRefreshTokens(user._id);
 
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", newrefreshToken, options)
+      .cookie("refreshToken", refreshToken, options)
       .json(
         new ApiResponse(
           200,
-          { accessToken, refreshToken: newrefreshToken },
+          { accessToken, refreshToken },
           "Access token refreshed"
         )
       );
   } catch (error) {
-    console.error("Refresh error:", error.message);
-    if (error.name === "TokenExpiredError") {
-      throw new ApiError(401, "Refresh token expired");
-    }
-
-    throw new ApiError(500, "Something went wrong while refreshing token");
+    throw new ApiError(401, error?.message || "Invalid refresh token");
   }
 });
 
@@ -200,7 +196,7 @@ const createBlog = asyncHandler(async (req, res) => {
 });
 
 const setInterests = asyncHandler(async (req, res) => {
-  const { interests } = req.body;
+  const { interests, aboutme, Profession } = req.body;
   const userId = req.user.id;
 
   if (!interests || !Array.isArray(interests) || interests.length === 0) {
@@ -213,6 +209,8 @@ const setInterests = asyncHandler(async (req, res) => {
     userId,
     {
       interests,
+      aboutme,
+      Profession,
       isProfileCompleted: true,
     },
     { new: true } // returns the updated document
@@ -222,31 +220,32 @@ const setInterests = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "User not found." });
   }
 
-  res.json({ message: "Profile completed", user });
+  res.status(200).json({ message: "Profile completed", user });
 });
 
 const getUserProfile = asyncHandler(async (req, res) => {
-  console.log(req.user);
-  const userId = req.user.id;
+  const { username } = req.params;
+  console.log(username);
 
-  const user = await User.findById(userId)
-    .select("-password -refreshToken") // Exclude sensitive fields
+  const user = await User.findOne({ username })
+    .select("fullName username aboutme Profession likedPosts myPosts")
     .populate({
       path: "likedPosts",
-      select: "content", // Only blog content
+      select: "title coverImage author",
+      populate: {
+        path: "author",
+        select: "fullName",
+      },
     })
     .populate({
-      path: "commentedPosts",
-      select: "content", // Only blog content
+      path: "myPosts",
+      select: "title coverImage",
     });
-
   if (!user) {
-    return res.status(404).json(new ApiResponse(404, null, "User not found"));
+    return res.status(404).json({ message: "User not found" });
   }
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, user, "User profile fetched successfully"));
+  res.status(200).json(user);
 });
 
 export {
