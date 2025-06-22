@@ -3,7 +3,8 @@ import { User } from "../models/User.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { cloudUpload } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-
+import { options } from "../constants.js";
+import { Follow } from "../models/Follow.model.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessTokenAndRefreshTokens = async (userId) => {
@@ -91,11 +92,6 @@ const loginUser = asyncHandler(async (req, res) => {
     "-password -refreshToken"
   );
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
-
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -121,10 +117,7 @@ const logoutUser = asyncHandler(async (req, res) => {
       new: true, // to return the new object to logoutUser
     }
   );
-  const options = {
-    httpOnly: true,
-    secure: true, //
-  };
+
   res
     .status(200)
     .clearCookie("accessToken", options)
@@ -135,7 +128,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
-
+  console.log("incomingRefreshToken", incomingRefreshToken);
   if (!incomingRefreshToken) {
     throw new ApiError(401, "unauthorized request");
   }
@@ -156,13 +149,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new ApiError(401, "Refresh token is expired or used");
     }
 
-    const options = {
-      httpOnly: true,
-      secure: true,
-    };
-
     const { accessToken, refreshToken } =
       await generateAccessTokenAndRefreshTokens(user._id);
+    console.log("new accessToken", accessToken);
+    console.log(" new refreshToken", refreshToken);
 
     return res
       .status(200)
@@ -225,28 +215,224 @@ const setInterests = asyncHandler(async (req, res) => {
 
 const getUserProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
-  console.log(username);
 
-  const user = await User.findOne({ username })
-    .select("fullName username aboutme Profession likedPosts myPosts")
-    .populate({
-      path: "likedPosts",
-      select: "title coverImage author",
-      populate: {
-        path: "author",
-        select: "fullName",
+  // const user = await User.findOne({ username })
+  //   .select("fullName username aboutme Profession likedPosts myPosts avatarUrl")
+  //   .populate({
+  //     path: "likedPosts",
+  //     select: "title coverImage author",
+  //     populate: {
+  //       path: "author",
+  //       select: "fullName",
+  //     },
+  //   })
+  //   .populate({
+  //     path: "myPosts",
+  //     select: "title coverImage",
+  //   });
+
+  // if (!user) {
+  //   return res.status(404).json({ message: "User not found" });
+  // }
+  // let bool = req.user._id.toString() === user._id.toString();
+  // console.log("User profile fetched successfully", user);
+  // res.status(200).json({...user.toObject(),owner:bool});
+  console.log(username);
+  const user = await User.aggregate([
+    {
+      $match: {
+        username: username,
       },
-    })
-    .populate({
-      path: "myPosts",
-      select: "title coverImage",
+    },
+    {
+      $lookup: {
+        from: "blogs",
+        let: { postIds: "$myPosts" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $in: ["$_id", "$$postIds"] },
+            },
+          },
+          {
+            $project: {
+              title: 1,
+              coverImage: 1,
+            },
+          },
+        ],
+        as: "myPosts",
+      },
+    },
+    {
+      $lookup: {
+        from: "blogs",
+        let: { liked: "$likedPosts" }, // Pass likedPosts array
+        pipeline: [
+          {
+            $match: {
+              $expr: { $in: ["$_id", "$$liked"] }, // Match blog._id in likedPosts
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "author", // Blog's owner field
+              foreignField: "_id",
+              as: "author",
+            },
+          },
+          {
+            $project: {
+              title: 1,
+              coverImage: 1,
+              author_fullName: { $arrayElemAt: ["$author.fullName", 0] }, // Only show author's full name
+            },
+          },
+        ],
+        as: "likedPosts",
+      },
+    },
+    {
+      $lookup: {
+        from: "follows",
+        localField: "_id",
+        foreignField: "person",
+        as: "followers",
+      },
+    },
+    {
+      $lookup: {
+        from: "follows",
+        localField: "_id",
+        foreignField: "follower",
+        as: "following",
+      },
+    },
+    {
+      $project: {
+        fullName: 1,
+        aboutme: 1,
+        Profession: 1,
+        avatarUrl: 1,
+        username: 1,
+        email: 1,
+        myPosts: 1,
+        likedPosts: 1,
+        followers: 1,
+        following: 1,
+      },
+    },
+  ]);
+  if (!user[0]) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  console.log(user[0]);
+  const isOwner = req.user._id.toString() === user[0]._id.toString();
+  let isFollowing = false;
+  if (!isOwner) {
+     isFollowing = user[0].followers
+      .map((f) => f.follower.toString())
+      .includes(req.user._id.toString());
+  }
+  res.status(200).json({
+    ...user[0],
+    owner: isOwner,
+    isFollowing: isFollowing || false,
+  });
+});
+
+const updateDetails = asyncHandler(async (req, res) => {
+  const { fullName, aboutme, Profession } = req.body;
+  const userId = req.user.id;
+  if (!fullName || !aboutme || !Profession) {
+    return res.status(400).json({
+      message: "Full name, about me, and profession are required.",
     });
+  }
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      fullName,
+      aboutme,
+      Profession,
+    },
+    { new: true }
+  );
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "User details updated successfully"));
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ message: "No file uploaded" });
+  }
+  console.log("File received for upload:", file.path);
+  const uploadResult = await cloudUpload(file.path); // Your Cloudinary uploader
+
+  if (!uploadResult || !uploadResult.secure_url) {
+    return res.status(500).json({ message: "File upload failed" });
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { avatarUrl: uploadResult.secure_url },
+    { new: true }
+  );
+
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
-
-  res.status(200).json(user);
+  console.log("Avatar updated successfully", user);
+  res
+    .status(200)
+    .json(new ApiResponse(200, user.avatarUrl, "Avatar updated successfully"));
 });
+
+const followOrUnfollowUser = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+  const currentUserId = req.user._id;
+  const targetUser = await User.findOne({ username });
+  if (!targetUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  if (targetUser._id.equals(currentUserId)) {
+    return res.status(400).json({ message: "You can't follow yourself" });
+  }
+  const existingFollow = await Follow.findOne({
+    follower: currentUserId,
+    person: targetUser._id,
+  });
+
+  if (existingFollow) {
+    await Follow.deleteOne({ _id: existingFollow._id });
+
+    return res.status(200).json({
+      message: "Unfollowed",
+      followerId: currentUserId.toString(),
+    });
+  } else {
+    await Follow.create({
+      follower: currentUserId,
+      person: targetUser._id,
+    });
+
+    const followerUser = await User.findById(currentUserId).select("fullName");
+
+    return res.status(200).json({
+      message: "Followed",
+      follower: {
+        _id: currentUserId,
+        fullName: followerUser.fullName,
+      },
+    });
+  }
+});
+
 
 export {
   registerUser,
@@ -256,4 +442,7 @@ export {
   setInterests,
   createBlog,
   getUserProfile,
+  updateDetails,
+  updateUserAvatar,
+  followOrUnfollowUser,
 };

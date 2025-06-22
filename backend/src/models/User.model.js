@@ -53,16 +53,18 @@ const userSchema = new mongoose.Schema(
         ref: "Blog",
       },
     ],
-    aboutme:
-    {
-      type:String,
-      default:""
+    aboutme: {
+      type: String,
+      default: "",
     },
-    Profession:
-    {
-      type:String,
-      default:""
-    }
+    Profession: {
+      type: String,
+      default: "",
+    },
+    avatarUrl: {
+      type: String,
+      default: "",
+    },
   },
 
   { timestamps: true }

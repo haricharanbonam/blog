@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../utils/axios";
 import Navbar from "../components/NavBar";
-
+import BlogGrid from "../components/BlogGrid";
 const Blog = () => {
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
@@ -38,39 +38,7 @@ const Blog = () => {
     <>
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {blogs.map((blog) => (
-            <div
-              key={blog._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => handleBlogClick(blog._id)}
-            >
-              <img
-                src={blog.coverImage}
-                alt={blog.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <h2 className="text-xl font-bold mb-2">{blog.title}</h2>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">
-                    Likes: {blog.likes?.length || 0}
-                  </span>
-                  <div className="flex flex-wrap gap-1">
-                    {blog.interests?.map((interest, i) => (
-                      <span
-                        key={i}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                      >
-                        {interest}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <BlogGrid blogs={blogs} onBlogClick={handleBlogClick} />
       </div>
     </>
   );

@@ -1,3 +1,42 @@
 @import "tailwindcss";
 
 @import "highlight.js/styles/github.css";
+
+.markdown-body {
+  background-color: transparent;
+  color: inherit;
+  padding: 1rem;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+/* Make code blocks light, readable */
+.markdown-body pre {
+  background-color: #f6f8fa !important; /* GitHub style */
+  color: black;
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.markdown-body pre {
+  background-color: #f6f8fa; /* GitHub-style light background */
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.markdown-body pre code {
+  color: #24292f; /* GitHub default text color */
+  font-size: 14px;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}

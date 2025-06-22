@@ -17,7 +17,6 @@ import useAuthStatus from "./hooks/useAuth";
 import CreateBlog from "./pages/createBlog";
 import ProfileCompletion from "./pages/ProfileCompletion";
 import Profile from "./pages/Profile";
-
 function AppWrapper() {
   return (
     <>

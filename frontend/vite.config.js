@@ -23,7 +23,7 @@ export default defineConfig({
             },
           },
         },
-        plugins: [typography], // Add the typography plugin here
+      // Add the typography plugin here
       },
     }),
   ],

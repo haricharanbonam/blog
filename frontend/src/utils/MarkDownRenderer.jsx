@@ -69,9 +69,12 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 
+import "github-markdown-css/github-markdown.css"; // GitHub markdown styling
+import "highlight.js/styles/github.css"; // GitHub-style light code highlighting
+
 const MarkdownRenderer = ({ content }) => {
   return (
-    <div className="prose dark:prose-invert max-w-none">
+    <div className="markdown-body">
       <ReactMarkdown
         children={content}
         remarkPlugins={[remarkGfm]}
@@ -82,3 +85,5 @@ const MarkdownRenderer = ({ content }) => {
 };
 
 export default MarkdownRenderer;
+
+
