@@ -74,7 +74,7 @@ import "highlight.js/styles/github.css"; // GitHub-style light code highlighting
 
 const MarkdownRenderer = ({ content }) => {
   return (
-    <div className="markdown-body">
+    <div className="markdown-body prose ">
       <ReactMarkdown
         children={content}
         remarkPlugins={[remarkGfm]}

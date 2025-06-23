@@ -19,9 +19,8 @@
   padding: 8px;
 }
 
-/* Make code blocks light, readable */
 .markdown-body pre {
-  background-color: #f6f8fa !important; /* GitHub style */
+  background-color: #f6f8fa !important;
   color: black;
   border-radius: 6px;
   padding: 1rem;
@@ -39,4 +38,77 @@
   color: #24292f; /* GitHub default text color */
   font-size: 14px;
   font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin-left: 1.5em;
+  padding-left: 1.5em;
+  list-style-type: disc; /* or decimal for ordered lists */
+}
+
+.markdown-body li {
+  margin-bottom: 0.25em;
+}
+
+.markdown-body blockquote {
+  border-left: 4px solid #d1d5db; /* Tailwind gray-300 */
+  padding-left: 1em;
+  color: #6b7280; /* gray-600 */
+  font-style: italic;
+  background-color: #f9fafb; /* subtle background */
+}
+
+.markdown-body input[type="checkbox"] {
+  margin-right: 0.5em;
+  transform: scale(1.1);
+  accent-color: #3b82f6; /* Tailwind's blue-500 */
+  cursor: pointer;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.markdown-body th {
+  background-color: #f3f4f6; /* gray-100 */
+  font-weight: 600;
+  color: black;
+}
+
+.markdown-body pre {
+  padding: 1em;
+  border-radius: 8px;
+  overflow: auto;
+  background-color: #f9fafb;
+}
+
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid #e5e7eb; /* gray-200 */
+  margin: 2rem 0;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  scroll-margin-top: 5rem; /* helps with anchor links */
+  font-weight: 700;
+}
+
+.markdown-body code {
+  background-color: #f3f4f6; /* gray-100 */
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-family: "Fira Code", monospace;
+  font-size: 0.95em;
 }
