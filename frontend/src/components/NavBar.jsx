@@ -39,12 +39,26 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center space-x-4">
-        <Link to={`/profile/${user?.username}`} title="Profile">
-          <FaUserCircle
-            size={28}
-            className="text-gray-600 hover:text-indigo-600 transition"
-          />
-        </Link>
+
+
+  <Link to={`/profile/${user?.username}`} title="Profile">
+{
+  user.avatarUrl?
+  (
+    <img
+      src={user.avatarUrl}
+      alt="User Avatar"
+      className="w-9 h-9 rounded-full object-cover"
+    />
+  ):
+  (
+    <FaUserCircle
+    size={28}
+    className="text-gray-600 hover:text-indigo-600 transition"
+    />
+  )
+}
+      </Link>
         <button
           onClick={handleLogout}
           className="px-4 py-1 rounded-full border border-red-500 text-red-500 hover:bg-red-50 transition"

@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import API from "../utils/axios";
 import Navbar from "../components/NavBar";
 import BlogGrid from "../components/BlogGrid";
+import FilterBar from "../components/FilterBar";
+
 const Blog = () => {
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
+  const [filteredBlogs, setFilteredBlogs] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -16,6 +20,8 @@ const Blog = () => {
           withCredentials: true,
         });
         setBlogs(res.data.data);
+        console.log("Blogs fetched:", res.data.data);
+        setFilteredBlogs(res.data.data);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch blogs");
       } finally {
@@ -25,6 +31,19 @@ const Blog = () => {
 
     fetchBlogs();
   }, []);
+
+ useEffect(() => {
+  if (selectedCategory === "All") {
+    setFilteredBlogs(blogs);
+  } else {
+    setFilteredBlogs(
+      blogs.filter((blog) =>
+        blog.interests?.includes(selectedCategory)
+      )
+    );
+  }
+}, [selectedCategory, blogs]);
+
 
   const handleBlogClick = (id) => {
     navigate(`/blog/${id}`);
@@ -38,7 +57,8 @@ const Blog = () => {
     <>
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <BlogGrid blogs={blogs} onBlogClick={handleBlogClick} />
+        <FilterBar selected={selectedCategory} onSelect={setSelectedCategory} />
+        <BlogGrid blogs={filteredBlogs} onBlogClick={handleBlogClick} />
       </div>
     </>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../utils/axios";
 import { useRef } from "react";
@@ -170,8 +170,8 @@ const Profile = () => {
 
             <button
               onClick={handleFollowToggle}
-              className={`px-5 py-2 rounded-full ${userData.owner && 
-                'invisible'
+              className={`px-5 py-2 rounded-full ${
+                userData.owner && "invisible"
               } shadow text-sm font-medium transition 
       ${
         isFollowing
@@ -184,11 +184,16 @@ const Profile = () => {
           </div>
 
           {userData.avatarUrl && (
-            <img
-              src={userData.avatarUrl}
-              alt="User Avatar"
-              className="w-20 h-20 rounded-full cursor-pointer mb-2"
-            />
+            <a 
+            target="_blank"
+            href={userData.avatarUrl}>
+              <img
+                src={userData.avatarUrl}
+                href={userData.avatarUrl}
+                alt="User Avatar"
+                className="w-20 h-20 rounded-full cursor-pointer mb-2"
+              />
+            </a>
           )}
           {!userData.avatarUrl && (
             <div

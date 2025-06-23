@@ -13,7 +13,6 @@ const BlogContainer = ({ blog, onClick }) => {
         <h2 className="text-xl font-bold mb-2">{blog.title}</h2>
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            Likes: {blog.likes?.length || 0}
           </span>
           <div className="flex flex-wrap gap-1">
             {blog.interests?.map((interest, i) => (
