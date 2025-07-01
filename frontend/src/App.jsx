@@ -17,6 +17,7 @@ import useAuthStatus from "./hooks/useAuth";
 import CreateBlog from "./pages/createBlog";
 import ProfileCompletion from "./pages/ProfileCompletion";
 import Profile from "./pages/Profile";
+import Followers from "./components/Followers";
 function AppWrapper() {
   return (
     <>
@@ -62,6 +63,14 @@ function AppWrapper() {
           element={
             <PrivateRoute>
               <CreateBlog />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/followers/:username"
+          element={
+            <PrivateRoute>
+              <Followers />
             </PrivateRoute>
           }
         />

@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { options } from "../constants.js";
 import { Follow } from "../models/Follow.model.js";
 import jwt from "jsonwebtoken";
+import sendEmail from "../utils/SendEmail.js";
 
 const generateAccessTokenAndRefreshTokens = async (userId) => {
   try {
@@ -25,7 +26,6 @@ const generateAccessTokenAndRefreshTokens = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, fullName, password } = req.body;
-  // console.log("username ", username);
   if (
     [fullName, email, username, password].some(
       (field) => typeof field !== "string" || field.trim() === ""
@@ -52,7 +52,16 @@ const registerUser = asyncHandler(async (req, res) => {
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
-
+  sendEmail(
+    createdUser.email,
+    "Welcome to Our Platform",
+    `Hello ${createdUser.fullName},
+    \n\nThank you for registering on our platform. We are excited to have you with us!\n\nBest regards,\nThe Team
+    To verify your email, please click on the link below:\n\n
+    <a href="${process.env.FRONTEND_URL}/verify-email?token=${createdUser._id}">Verify Email</a>
+    \n\nIf you did not register, please ignore this email.
+    `
+  );
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while registering the user ");
   }
@@ -62,7 +71,6 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
-  console.log(email, password);
   if (!email && !username) {
     throw new ApiError(400, "username or email is required");
   }
@@ -82,11 +90,8 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid user credentials");
   }
 
-  // Generate tokens and refreshToken is saved inside the function already
   const { accessToken, refreshToken } =
     await generateAccessTokenAndRefreshTokens(findUser._id);
-
-  // No need to save refreshToken here again, as it's done inside generateAccessTokenAndRefreshTokens
 
   const loggedInUser = await User.findById(findUser._id).select(
     "-password -refreshToken"
@@ -128,7 +133,6 @@ const logoutUser = asyncHandler(async (req, res) => {
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
-  console.log("incomingRefreshToken", incomingRefreshToken);
   if (!incomingRefreshToken) {
     throw new ApiError(401, "unauthorized request");
   }
@@ -151,8 +155,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } =
       await generateAccessTokenAndRefreshTokens(user._id);
-    console.log("new accessToken", accessToken);
-    console.log(" new refreshToken", refreshToken);
 
     return res
       .status(200)
@@ -237,7 +239,6 @@ const getUserProfile = asyncHandler(async (req, res) => {
   // let bool = req.user._id.toString() === user._id.toString();
   // console.log("User profile fetched successfully", user);
   // res.status(200).json({...user.toObject(),owner:bool});
-  console.log(username);
   const user = await User.aggregate([
     {
       $match: {
@@ -327,11 +328,10 @@ const getUserProfile = asyncHandler(async (req, res) => {
   if (!user[0]) {
     return res.status(404).json({ message: "User not found" });
   }
-  console.log(user[0]);
   const isOwner = req.user._id.toString() === user[0]._id.toString();
   let isFollowing = false;
   if (!isOwner) {
-     isFollowing = user[0].followers
+    isFollowing = user[0].followers
       .map((f) => f.follower.toString())
       .includes(req.user._id.toString());
   }
@@ -371,7 +371,6 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!file) {
     return res.status(400).json({ message: "No file uploaded" });
   }
-  console.log("File received for upload:", file.path);
   const uploadResult = await cloudUpload(file.path); // Your Cloudinary uploader
 
   if (!uploadResult || !uploadResult.secure_url) {
@@ -387,7 +386,6 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
-  console.log("Avatar updated successfully", user);
   res
     .status(200)
     .json(new ApiResponse(200, user.avatarUrl, "Avatar updated successfully"));
@@ -433,6 +431,72 @@ const followOrUnfollowUser = asyncHandler(async (req, res) => {
   }
 });
 
+const getFollowersandFollowing = asyncHandler(async (req, res) => {
+  const user = await User.findOne({ username: req.params.username }).select(
+    "_id"
+  );
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  const owner = req.user._id.toString();
+  const followers = await Follow.find({ person: user._id })
+    .populate("follower", "fullName username avatarUrl")
+    .select("follower")
+    .lean();
+
+  const following = await Follow.find({ follower: user._id })
+    .populate("person", "fullName username avatarUrl")
+    .select("person")
+    .lean();
+
+  const followersWithFlag = await Promise.all(
+    followers.map(async (f) => {
+      const isFollowing = await Follow.exists({
+        person: f.follower._id,
+        follower: owner,
+      });
+      return {
+        ...f,
+        isFollowing: !!isFollowing,
+      };
+    })
+  );
+
+  const followingWithFlag = await Promise.all(
+    following.map(async (f) => {
+      const isFollower = await Follow.exists({
+        person: owner,
+        follower: f.person._id,
+      });
+      return {
+        ...f,
+        isFollower: !!isFollower,
+      };
+    })
+  );
+
+  const flattenedFollowers = followersWithFlag.map((f) => ({
+    _id: f._id,
+    fullName: f.follower.fullName,
+    username: f.follower.username,
+    avatarUrl: f.follower.avatarUrl,
+    isFollowing: f.isFollowing,
+  }));
+
+  const flattenedFollowing = followingWithFlag.map((f) => ({
+    _id: f._id,
+    fullName: f.person.fullName,
+    username: f.person.username,
+    avatarUrl: f.person.avatarUrl,
+    isFollower: f.isFollower,
+  }));
+
+  res.json({
+    followers: flattenedFollowers,
+    following: flattenedFollowing,
+  });
+});
 
 export {
   registerUser,
@@ -445,4 +509,5 @@ export {
   updateDetails,
   updateUserAvatar,
   followOrUnfollowUser,
+  getFollowersandFollowing,
 };

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   followOrUnfollowUser,
+  getFollowersandFollowing,
   getUserProfile,
   loginUser,
   logoutUser,
@@ -20,8 +21,11 @@ userRouter.route("/logout").post(verifyJWT, logoutUser);
 userRouter.route("/refresh-token").post(refreshAccessToken);
 userRouter.route("/setInterests").post(verifyJWT, setInterests);
 userRouter.route("/profile/:username").get(verifyJWT, getUserProfile);
-userRouter.route("/update-details").put(verifyJWT,updateDetails);
-userRouter.route("/follow/:username").put( verifyJWT, followOrUnfollowUser);
+userRouter.route("/update-details").put(verifyJWT, updateDetails);
+userRouter.route("/follow/:username").put(verifyJWT, followOrUnfollowUser);
+userRouter
+  .route("/followinfo/:username")
+  .get(verifyJWT, getFollowersandFollowing);
 userRouter
   .route("/update-avatar")
   .put(verifyJWT, upload.single("avatar"), updateUserAvatar);

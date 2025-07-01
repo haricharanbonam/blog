@@ -27,7 +27,7 @@ const Profile = () => {
       try {
         const res = await API.get(`/user/profile/${username}`);
         setUserData(res.data);
-        setIsFollowing(res.data.isFollowing); // Set initial follow state
+        setIsFollowing(res.data.isFollowing);
 
         // Initialize modal fields when profile is fetched
         console.log("Fetched user data:", res.data);
@@ -163,11 +163,11 @@ const Profile = () => {
           <div className="flex items-center justify-end gap-4 mt-4">
             <button
               className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white rounded-full shadow hover:shadow-md text-sm"
-              disabled
+              onClick={() => {navigate(`/followers/${userData.username}`)}}
             >
               {userData.followers?.length || 0} Followers
             </button>
-
+            <p> {userData.following?.length || 0} Following</p>
             <button
               onClick={handleFollowToggle}
               className={`px-5 py-2 rounded-full ${
@@ -184,9 +184,7 @@ const Profile = () => {
           </div>
 
           {userData.avatarUrl && (
-            <a 
-            target="_blank"
-            href={userData.avatarUrl}>
+            <a target="_blank" href={userData.avatarUrl}>
               <img
                 src={userData.avatarUrl}
                 href={userData.avatarUrl}
