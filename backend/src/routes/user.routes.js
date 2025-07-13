@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   followOrUnfollowUser,
   getFollowersandFollowing,
+  getNotifications,
   getUserProfile,
   loginUser,
   logoutUser,
@@ -23,6 +24,7 @@ userRouter.route("/setInterests").post(verifyJWT, setInterests);
 userRouter.route("/profile/:username").get(verifyJWT, getUserProfile);
 userRouter.route("/update-details").put(verifyJWT, updateDetails);
 userRouter.route("/follow/:username").put(verifyJWT, followOrUnfollowUser);
+userRouter.route("/notifications").get(verifyJWT, getNotifications);
 userRouter
   .route("/followinfo/:username")
   .get(verifyJWT, getFollowersandFollowing);

@@ -1,5 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/User.model.js";
+import { Blog } from "../models/Blog.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { cloudUpload } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -116,6 +117,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     {
       $set: {
         refreshToken: undefined,
+        lastLogin: new Date(),
       },
     },
     {
@@ -214,31 +216,9 @@ const setInterests = asyncHandler(async (req, res) => {
 
   res.status(200).json({ message: "Profile completed", user });
 });
-
 const getUserProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
-  // const user = await User.findOne({ username })
-  //   .select("fullName username aboutme Profession likedPosts myPosts avatarUrl")
-  //   .populate({
-  //     path: "likedPosts",
-  //     select: "title coverImage author",
-  //     populate: {
-  //       path: "author",
-  //       select: "fullName",
-  //     },
-  //   })
-  //   .populate({
-  //     path: "myPosts",
-  //     select: "title coverImage",
-  //   });
-
-  // if (!user) {
-  //   return res.status(404).json({ message: "User not found" });
-  // }
-  // let bool = req.user._id.toString() === user._id.toString();
-  // console.log("User profile fetched successfully", user);
-  // res.status(200).json({...user.toObject(),owner:bool});
   const user = await User.aggregate([
     {
       $match: {
@@ -248,7 +228,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
     {
       $lookup: {
         from: "blogs",
-        let: { postIds: "$myPosts" },
+        let: { postIds: { $ifNull: ["$myPosts", []] } },
         pipeline: [
           {
             $match: {
@@ -268,7 +248,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
     {
       $lookup: {
         from: "blogs",
-        let: { liked: "$likedPosts" },
+        let: { liked: { $ifNull: ["$likedPosts", []] } },
         pipeline: [
           {
             $match: {
@@ -297,7 +277,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
     {
       $lookup: {
         from: "blogs",
-        let: { saved: "$savedPosts" },
+        let: { saved: { $ifNull: ["$savedPosts", []] } },
         pipeline: [
           {
             $match: {
@@ -343,7 +323,6 @@ const getUserProfile = asyncHandler(async (req, res) => {
         savedPosts: 1,
         followers: 1,
         following: 1,
-        savedPosts:1
       },
     },
   ]);
@@ -351,13 +330,16 @@ const getUserProfile = asyncHandler(async (req, res) => {
   if (!user[0]) {
     return res.status(404).json({ message: "User not found" });
   }
+
   const isOwner = req.user._id.toString() === user[0]._id.toString();
+
   let isFollowing = false;
   if (!isOwner) {
     isFollowing = user[0].followers
       .map((f) => f.follower.toString())
       .includes(req.user._id.toString());
   }
+
   res.status(200).json({
     ...user[0],
     owner: isOwner,
@@ -521,6 +503,24 @@ const getFollowersandFollowing = asyncHandler(async (req, res) => {
   });
 });
 
+const getNotifications = asyncHandler(async (req, res) => {
+  const Follows = await Follow.find({ follower: req.user._id });
+  const followedUserIds = Follows.map((e) => e.person);
+  const user = await User.findById(req.user._id);
+  const lastLoginTime = user.lastLogin || new Date(0);
+  const newPosts = await Blog.find({
+    author: { $in: followedUserIds },
+    createdAt: { $gt: lastLoginTime },
+  })
+    .populate("author", "fullName")
+    .sort({ createdAt: -1 })
+    .limit(10);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, newPosts, "New posts from followed users"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -533,4 +533,5 @@ export {
   updateUserAvatar,
   followOrUnfollowUser,
   getFollowersandFollowing,
+  getNotifications,
 };

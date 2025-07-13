@@ -5,6 +5,7 @@ import userRouter from "./routes/user.routes.js";
 import blogRouter from "./routes/blog.routes.js";
 import { asyncHandler } from "./utils/asyncHandler.js";
 import { Blog } from "./models/Blog.model.js";
+import { User } from "./models/User.model.js";
 import { ApiError } from "./utils/ApiError.js";
 import { verifyJWT } from "./middlewares/auth.middleware.js";
 
@@ -42,7 +43,18 @@ app.use(
     limit: "16kb",
   })
 );
+const update=async()=>
+{
 
+  const blogs = await Blog.find();
+  for (const blog of blogs) {
+    await User.findByIdAndUpdate(
+    blog.author,
+    { $addToSet: { myPosts: blog._id } } // avoids duplicates
+  );
+}
+}
+update();
 
 app.use(express.static("public"));
 

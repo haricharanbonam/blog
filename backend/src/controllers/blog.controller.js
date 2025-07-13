@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Blog } from "../models/Blog.model.js";
 import { User } from "../models/User.model.js";
+import { Follow } from "../models/Follow.model.js";
 import { Comment } from "../models/Comment.model.js";
 import { upload } from "../middlewares/multer.js";
 import { cloudUpload } from "../utils/cloudinary.js";
@@ -13,16 +14,14 @@ const createBlog = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Content is required");
   }
 
-  // Validate title
   if (!title || typeof title !== "string" || title.trim() === "") {
     throw new ApiError(400, "Title is required");
   }
 
-  // Validate interests (can come as JSON string or comma-separated from form)
   let interestArray = interests;
   if (typeof interests === "string") {
     try {
-      interestArray = JSON.parse(interests); // e.g., from form-data
+      interestArray = JSON.parse(interests);
     } catch {
       interestArray = interests.split(",").map((item) => item.trim());
     }
@@ -32,22 +31,26 @@ const createBlog = asyncHandler(async (req, res) => {
     throw new ApiError(400, "At least one interest is required");
   }
 
-  // Cover image upload (local or cloudinary)
   const coverImageUrl = req.file
-    ? req.file.path // or cloudinary URL if you're uploading it there
+    ? req.file.path
     : "https://via.placeholder.com/150";
 
   const uploadImageUrl = await cloudUpload(coverImageUrl);
   if (!uploadImageUrl) {
     throw new ApiError(500, "Failed to upload cover image");
   }
+
   const blog = await Blog.create({
     content: content.trim(),
     title: title.trim(),
-    coverImage: uploadImageUrl.url, // Use the secure URL from Cloudinary
+    coverImage: uploadImageUrl.url,
     author: req.user._id,
     comments: [],
     interests: interestArray,
+  });
+
+  await User.findByIdAndUpdate(req.user._id, {
+    $push: { myPosts: blog._id },
   });
 
   res.status(201).json(new ApiResponse(201, blog, "Blog created successfully"));
@@ -57,9 +60,7 @@ const getBlogsonInterest = asyncHandler(async (req, res) => {
   const page = parseInt(req.params.page) || 1;
   const limit = 6;
   const skip = (page - 1) * limit;
-  const blogs = await Blog.find({
-    interests: { $in: req.user.interests },
-  })
+  const blogs = await Blog.find({})
     .populate("author", "fullName")
     .skip(skip)
     .limit(limit);

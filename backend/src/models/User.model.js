@@ -65,12 +65,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    savedPosts:[
+    savedPosts: [
       {
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"Blog"
-  }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Blog",
+      },
     ],
+    lastLogin: {
+      type: Date,
+      default: Date.now,
+    },
   },
 
   { timestamps: true }

@@ -39,7 +39,6 @@ const Blog = () => {
   }, [page]);
 
 
-
   const handleLoadMore = ()=>
   {
     setPage(prev=>prev+1);
