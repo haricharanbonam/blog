@@ -268,17 +268,17 @@ const getUserProfile = asyncHandler(async (req, res) => {
     {
       $lookup: {
         from: "blogs",
-        let: { liked: "$likedPosts" }, // Pass likedPosts array
+        let: { liked: "$likedPosts" },
         pipeline: [
           {
             $match: {
-              $expr: { $in: ["$_id", "$$liked"] }, // Match blog._id in likedPosts
+              $expr: { $in: ["$_id", "$$liked"] },
             },
           },
           {
             $lookup: {
               from: "users",
-              localField: "author", // Blog's owner field
+              localField: "author",
               foreignField: "_id",
               as: "author",
             },
@@ -287,11 +287,31 @@ const getUserProfile = asyncHandler(async (req, res) => {
             $project: {
               title: 1,
               coverImage: 1,
-              author_fullName: { $arrayElemAt: ["$author.fullName", 0] }, // Only show author's full name
+              author_fullName: { $arrayElemAt: ["$author.fullName", 0] },
             },
           },
         ],
         as: "likedPosts",
+      },
+    },
+    {
+      $lookup: {
+        from: "blogs",
+        let: { saved: "$savedPosts" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $in: ["$_id", "$$saved"] },
+            },
+          },
+          {
+            $project: {
+              title: 1,
+              coverImage: 1,
+            },
+          },
+        ],
+        as: "savedPosts",
       },
     },
     {
@@ -320,11 +340,14 @@ const getUserProfile = asyncHandler(async (req, res) => {
         email: 1,
         myPosts: 1,
         likedPosts: 1,
+        savedPosts: 1,
         followers: 1,
         following: 1,
+        savedPosts:1
       },
     },
   ]);
+
   if (!user[0]) {
     return res.status(404).json({ message: "User not found" });
   }

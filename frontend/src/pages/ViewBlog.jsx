@@ -34,7 +34,6 @@ const ViewBlog = () => {
     };
     fetchBlog();
   }, [id]);
-
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     setCommentLoading(true);

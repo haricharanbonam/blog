@@ -32,7 +32,6 @@ function Followers() {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
       <div className="bg-white rounded-xl shadow-lg w-96 p-4">
-        {/* Toggle buttons */}
         <div className="flex border-b border-gray-300">
           <button
             className={`flex-1 py-2 text-center font-medium ${
@@ -56,7 +55,6 @@ function Followers() {
           </button>
         </div>
 
-        {/* Grid below */}
         <div className="mt-4">
           <FollowGrid
             persons={toggleOn ? followers : following}

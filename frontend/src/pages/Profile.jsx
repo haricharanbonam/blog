@@ -29,7 +29,6 @@ const Profile = () => {
         setUserData(res.data);
         setIsFollowing(res.data.isFollowing);
 
-        // Initialize modal fields when profile is fetched
         console.log("Fetched user data:", res.data);
         setNewData({
           fullName: res.data.fullName || "",
@@ -161,13 +160,11 @@ const Profile = () => {
             className="hidden"
           />
           <div className="flex items-center justify-end gap-4 mt-4">
-            <button
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white rounded-full shadow hover:shadow-md text-sm"
-              onClick={() => {navigate(`/followers/${userData.username}`)}}
-            >
+            <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white rounded-full shadow hover:shadow-md text-sm">
               {userData.followers?.length || 0} Followers
             </button>
             <p> {userData.following?.length || 0} Following</p>
+
             <button
               onClick={handleFollowToggle}
               className={`px-5 py-2 rounded-full ${
@@ -182,6 +179,14 @@ const Profile = () => {
               {isFollowing ? "Unfollow" : "Follow"}
             </button>
           </div>
+          <p
+          className="cursor-pointer "
+            onClick={() => {
+              navigate(`/followers/${userData.username}`);
+            }}
+          >
+            Click to view
+          </p>
 
           {userData.avatarUrl && (
             <a target="_blank" href={userData.avatarUrl}>
@@ -216,9 +221,10 @@ const Profile = () => {
 
       <h2 className="text-2xl font-semibold mb-4">Liked Posts</h2>
       <BlogGrid blogs={userData.likedPosts} onBlogClick={handleBlogClick} />
-
       <h2 className="text-2xl font-semibold mb-4">My Posts</h2>
       <BlogGrid blogs={userData.myPosts} onBlogClick={handleBlogClick} />
+      <h2 className="text-2xl font-semibold mb-4">Saved Posts</h2>
+      <BlogGrid blogs={userData.savedPosts} onBlogClick={handleBlogClick} />
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

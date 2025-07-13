@@ -54,9 +54,15 @@ const createBlog = asyncHandler(async (req, res) => {
 });
 
 const getBlogsonInterest = asyncHandler(async (req, res) => {
+  const page = parseInt(req.params.page) || 1;
+  const limit = 6;
+  const skip = (page - 1) * limit;
   const blogs = await Blog.find({
     interests: { $in: req.user.interests },
-  }).populate("author", "fullName");
+  })
+    .populate("author", "fullName")
+    .skip(skip)
+    .limit(limit);
 
   if (!blogs) {
     throw new ApiError(500, "Something went wrong");
@@ -79,12 +85,10 @@ const toggleLike = asyncHandler(async (req, res) => {
   blog.dislikes = blog.dislikes || [];
   const hasLiked = blog.likes.includes(userId);
   const hasDisliked = blog.dislikes.includes(userId);
-  console.log("it made this fqar 1");
   if (hasLiked) {
     blog.likes.pull(userId);
     user.likedPosts.pull(id);
   } else {
-    console.log("it made this fqar 2");
     blog.likes.push(userId);
     if (!user.likedPosts.includes(id)) {
       user.likedPosts.push(id);
@@ -93,7 +97,6 @@ const toggleLike = asyncHandler(async (req, res) => {
   }
   await blog.save();
   await user.save();
-  console.log(blog.likes.length, "blog length");
   res.json({
     message: hasLiked ? "Like removed" : "Blog liked",
     likesCount: blog.likes.length,
@@ -195,6 +198,7 @@ const viewBlog = asyncHandler(async (req, res) => {
 
   const likedByCurrentUser = blog.likes.includes(currentUserId);
   const dislikedByCurrentUser = blog.dislikes.includes(currentUserId);
+  const saved = req.user.savedPosts.includes(blog._id);
 
   const formattedBlog = {
     _id: blog._id,
@@ -207,6 +211,7 @@ const viewBlog = asyncHandler(async (req, res) => {
     interests: blog.interests,
     createdAt: blog.createdAt,
     updatedAt: blog.updatedAt,
+    isSaved: saved,
     likedByCurrentUser, // ✅ Added
     dislikedByCurrentUser, // ✅ Optional, for thumbs-down logic
     comments: blog.comments.map((comment) => ({
@@ -225,7 +230,6 @@ const viewBlog = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, formattedBlog, "Blog fetched successfully"));
 });
 
-
 const myBlogs = asyncHandler(async (req, res) => {
   const userId = req.user.id;
 
@@ -236,6 +240,33 @@ const myBlogs = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Failed to fetch user's blogs" });
   }
 });
+
+const handleSave = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const alreadySaved = user.savedPosts.includes(id);
+
+  if (alreadySaved) {
+    user.savedPosts = user.savedPosts.filter(
+      (postId) => postId.toString() !== id
+    );
+  } else {
+    user.savedPosts.push(id);
+  }
+
+  await user.save();
+
+  return res.status(200).json({
+    message: alreadySaved ? "Post unsaved" : "Post saved",
+    saved: !alreadySaved,
+  });
+});
+
 export {
   createBlog,
   getBlogsonInterest,
@@ -243,5 +274,6 @@ export {
   toggleLike,
   addComment,
   viewBlog,
-  myBlogs
+  myBlogs,
+  handleSave,
 };
