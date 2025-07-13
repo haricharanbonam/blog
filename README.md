@@ -12,7 +12,7 @@ Welcome to **BlogX**, a modern, full-stack blogging platform built using the **M
 
 - ✅ **User Authentication** (Signup, Login, JWT-based sessions)
 - 🏷️ **Interest-Based Blog Filtering**
-- ✍️ **Create & Edit Blogs** using Markdown support
+- ✍️ **Create Blogs** using Markdown support
 - 🖼️ **Cover Image Upload** with Cloudinary
 - 🔔 **Follow Users & Get Notifications** on new blogs
 - 💬 **Comment System** with real-time updates
