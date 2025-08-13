@@ -4,7 +4,7 @@
 
 # 📝 BlogX — Full-Featured Blogging Platform
 
-Welcome to **BlogX**, a modern, full-stack blogging platform built using the **MERN** stack. It’s designed for seamless writing, reading, and connecting with other bloggers — with a clean UI, authentication, interest-based filtering, and real-time content interactions.
+Welcome to **BlogX**, a modern, full-stack blogging platform built using the **MERN** stack. It’s designed for seamless writing, reading, and connecting with other bloggers — with a clean UI, authentication, interest-based filtering, and real-time content interactions..
 
 ---
 
