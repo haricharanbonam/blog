@@ -1,5 +1,5 @@
 
-----
+---
 
 
 # 📝 BlogX — Full-Featured Blogging Platform
