@@ -7,17 +7,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3 # fetch repo files
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
-      - name: Install dependencies
+      # Backend build (if you want to install but not run dev)
+      - name: Install backend dependencies
         run: npm install
         working-directory: ./backend
 
-      - name: Run dev server
-        run: npm run dev
-        working-directory: ./backend
+      # Frontend build
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: ./frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./frontend
