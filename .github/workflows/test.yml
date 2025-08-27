@@ -1,9 +1,11 @@
-  on: push
-  jobs:
-    build-node :
-      runs-on : ubuntu-latest
-      container : node:20
-      steps:
-        -run : node --version
-        -run : npm -- version
+name: Node.js CI
 
+on: push
+
+jobs:
+  build-node:
+    runs-on: ubuntu-latest
+    container: node:20
+    steps:
+      - run: node --version
+      - run: npm --version
