@@ -1,18 +1,19 @@
-name: Node.js CI
-
-on: push
-
 jobs:
-  build-node:
+  build:
     runs-on: ubuntu-latest
-    container: node:20
-    defaults:
-      run:
-        working-directory: ./backend
-    steps:
-      - uses: actions/checkout@v3 
 
-      - run: node --version
-      - run: npm --version
-      - run: npm install
-      - run: npm run dev
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: Run dev server
+        run: npm run dev
+        working-directory: ./backend
