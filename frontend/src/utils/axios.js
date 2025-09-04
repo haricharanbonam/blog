@@ -27,12 +27,14 @@ API.interceptors.response.use(
       try {
         const res = await axios.post(
           "http://localhost:3000/user/refresh-token",
+          {}, // Empty body since refresh token is sent via cookies
           {
-            withCredentials: true,
+            withCredentials: true, // Move withCredentials to config object
           }
         );
 
-        const newAccessToken = res.data.accessToken;
+        // Access the token from the correct nested path
+        const newAccessToken = res.data.data.accessToken;
         if (!newAccessToken) throw new Error("No token in refresh response");
 
         localStorage.setItem("token", newAccessToken); // Store new token
@@ -43,6 +45,7 @@ API.interceptors.response.use(
         return API(originalRequest);
       } catch (refreshErr) {
         localStorage.removeItem("token");
+        localStorage.removeItem("user"); // Also clear user data
         console.error("Refresh token failed:", refreshErr);
         // Redirect to login page or handle accordingly
         window.location.href = "/login";

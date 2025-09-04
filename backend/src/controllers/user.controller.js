@@ -100,8 +100,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, { ...options, maxAge: 15 * 60 * 1000 }) // 15 minutes for access token
+    .cookie("refreshToken", refreshToken, options) // 7 days for refresh token (maxAge defined in options)
     .json(
       new ApiResponse(
         200,
@@ -115,10 +115,12 @@ const logoutUser = asyncHandler(async (req, res) => {
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: {
-        refreshToken: undefined,
-        lastLogin: new Date(),
+      $unset: {
+        refreshToken: 1 // Remove the field completely
       },
+      $set: {
+        lastLogin: new Date(),
+      }
     },
     {
       new: true, // to return the new object to logoutUser
@@ -129,14 +131,15 @@ const logoutUser = asyncHandler(async (req, res) => {
     .status(200)
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
-    .json(new ApiResponse(200, "user logged out"));
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
+    
   if (!incomingRefreshToken) {
-    throw new ApiError(401, "unauthorized request");
+    throw new ApiError(401, "Refresh token not provided");
   }
 
   try {
@@ -160,16 +163,25 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, { ...options, maxAge: 15 * 60 * 1000 }) // 15 minutes for access token
+      .cookie("refreshToken", refreshToken, options) // 7 days for refresh token
       .json(
         new ApiResponse(
           200,
           { accessToken, refreshToken },
-          "Access token refreshed"
+          "Access token refreshed successfully"
         )
       );
   } catch (error) {
+    // Clear invalid refresh token from database
+    if (error.name === "TokenExpiredError" || error.name === "JsonWebTokenError") {
+      const decodedToken = jwt.decode(incomingRefreshToken);
+      if (decodedToken?._id) {
+        await User.findByIdAndUpdate(decodedToken._id, {
+          $unset: { refreshToken: 1 }
+        });
+      }
+    }
     throw new ApiError(401, error?.message || "Invalid refresh token");
   }
 });

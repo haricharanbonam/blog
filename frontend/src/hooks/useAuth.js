@@ -4,7 +4,7 @@ const useAuthStatus = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("accessToken");
+    const token = localStorage.getItem("token"); // Use consistent storage and key name
     setIsLoggedIn(!!token); // true if token exists
   }, []);
 
