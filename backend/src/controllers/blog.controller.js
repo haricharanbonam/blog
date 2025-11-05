@@ -135,9 +135,9 @@ const addComment = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { content } = req.body;
 
-  if (!content || content.trim() === "") {
-    return res.status(400).json({ message: "Comment content is required" });
-  }
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ message: "Comment content is required" });
+    }
 
   const user = await User.findById(userId);
   const blog = await Blog.findById(id);

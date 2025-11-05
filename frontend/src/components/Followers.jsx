@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import API from "../utils/axios";
 import FollowGrid from "./Follow/FollowGrid";
 import { useParams, useNavigate } from "react-router-dom";
+import { X } from "lucide-react"; // close icon (from lucide-react)
 
 function Followers() {
   const { username } = useParams();
@@ -29,10 +30,22 @@ function Followers() {
     navigate(`/profile/${person.username}`);
   };
 
+  const handleClose = () => {
+    navigate(`/profile/${username}`);
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-      <div className="bg-white rounded-xl shadow-lg w-96 p-4">
-        <div className="flex border-b border-gray-300">
+      <div className="relative bg-white rounded-xl shadow-lg w-96 p-4">
+        {/* Close Button */}
+        <button
+          className="absolute top-3 right-3 text-gray-600 hover:text-black transition"
+          onClick={handleClose}
+        >
+          <X size={20} />
+        </button>
+
+        <div className="flex border-b border-gray-300 mt-2">
           <button
             className={`flex-1 py-2 text-center font-medium ${
               toggleOn

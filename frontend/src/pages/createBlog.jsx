@@ -77,6 +77,19 @@ const CreateBlog = () => {
           required
         />
 
+        <p className="text-sm text-gray-600 mt-2">
+          Don’t have a Markdown file?{" "}
+          <a
+            href="https://dillinger.io/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            Click here
+          </a>{" "}
+          to create one.
+        </p>
+
         <Select
           isMulti
           name="interests"
