@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "https://blog-n2cx.onrender.com/",
   withCredentials: true, // Send cookies like refresh token
 });
 
