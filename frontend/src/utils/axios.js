@@ -1,12 +1,12 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://blog-alpha-smoky-31.vercel.app/",
+  baseURL: "https://blog-n2cx.onrender.com/",
   withCredentials: true,
 });
 
 const refreshAPI = axios.create({
-  baseURL: "https://blog-alpha-smoky-31.vercel.app/",
+  baseURL: "https://blog-n2cx.onrender.com/",
   withCredentials: true,
 });
 
