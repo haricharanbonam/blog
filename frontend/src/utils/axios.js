@@ -1,15 +1,14 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:3000/",
-  withCredentials: true, 
-});
-
-const refreshAPI = axios.create({
-  baseURL: "http://localhost:3000/",
+  baseURL: "https://blog-alpha-smoky-31.vercel.app/",
   withCredentials: true,
 });
 
+const refreshAPI = axios.create({
+  baseURL: "https://blog-alpha-smoky-31.vercel.app/",
+  withCredentials: true,
+});
 
 API.interceptors.response.use(
   (response) => response,
@@ -38,7 +37,5 @@ API.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-
 
 export default API;
