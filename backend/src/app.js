@@ -43,18 +43,17 @@ app.use(
     limit: "16kb",
   })
 );
-const update=async()=>
-{
-
-  const blogs = await Blog.find();
-  for (const blog of blogs) {
-    await User.findByIdAndUpdate(
-    blog.author,
-    { $addToSet: { myPosts: blog._id } } // avoids duplicates
-  );
-}
-}
-update();
+// const update=async()=>
+// {
+//   const blogs = await Blog.find();
+//   for (const blog of blogs) {
+//     await User.findByIdAndUpdate(
+//     blog.author,
+//     { $addToSet: { myPosts: blog._id } } // avoids duplicates
+//   );
+// }
+// }
+// update();
 
 app.use(express.static("public"));
 

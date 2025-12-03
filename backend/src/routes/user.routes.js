@@ -11,6 +11,7 @@ import {
   setInterests,
   updateDetails,
   updateUserAvatar,
+  checkUser
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.js";
@@ -25,6 +26,7 @@ userRouter.route("/profile/:username").get(verifyJWT, getUserProfile);
 userRouter.route("/update-details").put(verifyJWT, updateDetails);
 userRouter.route("/follow/:username").put(verifyJWT, followOrUnfollowUser);
 userRouter.route("/notifications").get(verifyJWT, getNotifications);
+userRouter.route("/me").get(checkUser);
 userRouter
   .route("/followinfo/:username")
   .get(verifyJWT, getFollowersandFollowing);

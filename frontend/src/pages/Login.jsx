@@ -2,10 +2,13 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import API from "../utils/axios";
+
+import { useAuth } from "../utils/AuthContext";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+   const { login } = useAuth(); 
 
   const navigate = useNavigate();
   const handleLogin = async (e) => {
@@ -19,10 +22,11 @@ function Login() {
       if (res.status === 200) {
         const { accessToken, refreshToken, user } = res.data.data;
         console.log(accessToken, refreshToken);
-        localStorage.setItem("token", accessToken);
-        localStorage.setItem("user", JSON.stringify(user));
-        console.log("Access Token:", accessToken);
+
+        login(); // Update auth state
+
         if (res.data.data.user.isProfileCompleted) {
+          console.log("it made it here");
           navigate("/");
         } else {
           navigate("/complete-profile");

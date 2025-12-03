@@ -8,15 +8,14 @@ import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
   const [data,setData]=useState([]);
   const handleLogout = async () => {
     try {
-      await API.get("/logout", { withCredentials: true }); 
+      await API.post("user/logout", { withCredentials: true }); 
     } catch (err) {
       console.error("Logout failed:", err);
     } finally {
-      localStorage.removeItem("token"); 
       navigate("/login"); 
     }
   };

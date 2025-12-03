@@ -4,7 +4,7 @@ import {
   getBlogsonInterest,
   handleSave,
   myBlogs,
-  toggleDislike,
+  // toggleDislike,
   toggleLike,
   viewBlog,
 } from "../controllers/blog.controller.js";
@@ -18,8 +18,7 @@ blogRouter.post(`/:page`, verifyJWT, checkProfileCompletion, getBlogsonInterest)
 blogRouter.put("/like/:id", verifyJWT, toggleLike);
 blogRouter.post("/comment/:id", verifyJWT, addComment);
 blogRouter.get("/view/:id", verifyJWT, viewBlog);
-blogRouter.put("/dislike/:id", verifyJWT, toggleDislike);
-blogRouter.put("/dislike/:id", verifyJWT, toggleDislike);
+// blogRouter.put("/dislike/:id", verifyJWT, toggleDislike);
 blogRouter.get("/myblogs", verifyJWT, myBlogs);
 blogRouter.post("/save/:id", verifyJWT, handleSave);
 export default blogRouter;

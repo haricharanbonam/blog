@@ -9,15 +9,12 @@ import { upload } from "../middlewares/multer.js";
 import { cloudUpload } from "../utils/cloudinary.js";
 const createBlog = asyncHandler(async (req, res) => {
   const { content, interests, title } = req.body;
-
-  if (!content || typeof content !== "string" || content.trim() === "") {
+  if (!content || typeof content !== "string" || content.trim() === "") { //best way to check if the given string is proper or not
     throw new ApiError(400, "Content is required");
   }
-
   if (!title || typeof title !== "string" || title.trim() === "") {
     throw new ApiError(400, "Title is required");
   }
-
   let interestArray = interests;
   if (typeof interests === "string") {
     try {
@@ -27,7 +24,7 @@ const createBlog = asyncHandler(async (req, res) => {
     }
   }
 
-  if (!Array.isArray(interestArray) || interestArray.length === 0) {
+  if (!Array.isArray(interestArray) || interestArray.length === 0) { //for an array
     throw new ApiError(400, "At least one interest is required");
   }
 
@@ -75,7 +72,6 @@ const getBlogsonInterest = asyncHandler(async (req, res) => {
 });
 
 const toggleLike = asyncHandler(async (req, res) => {
-  console.log("it made this far");
   const userId = req.user.id;
   const { id } = req.params;
   const user = await User.findById(userId);
@@ -85,7 +81,6 @@ const toggleLike = asyncHandler(async (req, res) => {
   blog.likes = blog.likes || [];
   blog.dislikes = blog.dislikes || [];
   const hasLiked = blog.likes.includes(userId);
-  const hasDisliked = blog.dislikes.includes(userId);
   if (hasLiked) {
     blog.likes.pull(userId);
     user.likedPosts.pull(id);
@@ -94,7 +89,6 @@ const toggleLike = asyncHandler(async (req, res) => {
     if (!user.likedPosts.includes(id)) {
       user.likedPosts.push(id);
     }
-    if (hasDisliked) blog.dislikes.pull(userId);
   }
   await blog.save();
   await user.save();
@@ -105,31 +99,31 @@ const toggleLike = asyncHandler(async (req, res) => {
   });
 });
 
-const toggleDislike = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
-  const { id } = req.params;
+// const toggleDislike = asyncHandler(async (req, res) => {
+//   const userId = req.user.id;
+//   const { id } = req.params;
 
-  const blog = await Blog.findById(id);
-  if (!blog) return res.status(404).json({ message: "Blog not found" });
+//   const blog = await Blog.findById(id);
+//   if (!blog) return res.status(404).json({ message: "Blog not found" });
 
-  const hasDisliked = blog.dislikes.includes(userId);
-  const hasLiked = blog.likes.includes(userId);
+//   const hasDisliked = blog.dislikes.includes(userId);
+//   const hasLiked = blog.likes.includes(userId);
 
-  if (hasDisliked) {
-    blog.dislikes.pull(userId);
-  } else {
-    blog.dislikes.push(userId);
-    if (hasLiked) blog.likes.pull(userId);
-  }
+//   if (hasDisliked) {
+//     blog.dislikes.pull(userId);
+//   } else {
+//     blog.dislikes.push(userId);
+//     if (hasLiked) blog.likes.pull(userId);
+//   }
 
-  await blog.save();
+//   await blog.save();
 
-  res.json({
-    message: hasDisliked ? "Dislike removed" : "Blog disliked",
-    likesCount: blog.likes.length,
-    dislikesCount: blog.dislikes.length,
-  });
-});
+//   res.json({
+//     message: hasDisliked ? "Dislike removed" : "Blog disliked",
+//     likesCount: blog.likes.length,
+//     dislikesCount: blog.dislikes.length,
+//   });
+// });
 const addComment = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -178,7 +172,7 @@ const addComment = asyncHandler(async (req, res) => {
 
 const viewBlog = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const currentUserId = req.user.id; // ✅ from JWT
+  const currentUserId = req.user.id; 
 
   const blog = await Blog.findById(id)
     .populate({
@@ -198,7 +192,6 @@ const viewBlog = asyncHandler(async (req, res) => {
   }
 
   const likedByCurrentUser = blog.likes.includes(currentUserId);
-  const dislikedByCurrentUser = blog.dislikes.includes(currentUserId);
   const saved = req.user.savedPosts.includes(blog._id);
 
   const formattedBlog = {
@@ -208,13 +201,11 @@ const viewBlog = asyncHandler(async (req, res) => {
     content: blog.content,
     author: blog.author,
     likesCount: blog.likes.length,
-    dislikesCount: blog.dislikes.length,
     interests: blog.interests,
     createdAt: blog.createdAt,
     updatedAt: blog.updatedAt,
     isSaved: saved,
     likedByCurrentUser, // ✅ Added
-    dislikedByCurrentUser, // ✅ Optional, for thumbs-down logic
     comments: blog.comments.map((comment) => ({
       _id: comment._id,
       content: comment.content,
@@ -271,7 +262,7 @@ const handleSave = asyncHandler(async (req, res) => {
 export {
   createBlog,
   getBlogsonInterest,
-  toggleDislike,
+  // toggleDislike,
   toggleLike,
   addComment,
   viewBlog,

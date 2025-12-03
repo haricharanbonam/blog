@@ -8,6 +8,7 @@ import { options } from "../constants.js";
 import { Follow } from "../models/Follow.model.js";
 import jwt from "jsonwebtoken";
 import sendEmail from "../utils/SendEmail.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const generateAccessTokenAndRefreshTokens = async (userId) => {
   try {
@@ -124,11 +125,11 @@ const logoutUser = asyncHandler(async (req, res) => {
       new: true, // to return the new object to logoutUser
     }
   );
-
+  console.log("the cookies we got", req.cookies);
   res
+    .clearCookie("accessToken", { ...options, expires: new Date(0) })
+    .clearCookie("refreshToken", { ...options, expires: new Date(0) })
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, "user logged out"));
 });
 
@@ -138,7 +139,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   if (!incomingRefreshToken) {
     throw new ApiError(401, "unauthorized request");
   }
-
   try {
     const decodedToken = jwt.verify(
       incomingRefreshToken,
@@ -155,13 +155,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new ApiError(401, "Refresh token is expired or used");
     }
 
-    const { accessToken, refreshToken } =
-      await generateAccessTokenAndRefreshTokens(user._id);
+    const { accessToken } = await generateAccessTokenAndRefreshTokens(user._id);
 
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
       .json(
         new ApiResponse(
           200,
@@ -520,7 +518,22 @@ const getNotifications = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, newPosts, "New posts from followed users"));
 });
-
+const checkUser = asyncHandler(async (req, res) => {
+  const token = req.cookies.accessToken || req.body?.accessToken;
+  if (!token) {
+    throw new ApiError(401, "No Access Token Provided");
+  }
+  try {
+    const decodedUser = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const user = await User.findById(decodedUser?._id).select("avatarUrl");
+    if (!user) {
+      throw new ApiError(401, "INvalid Token");
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    throw new ApiError(401, "token is expired");
+  }
+});
 export {
   registerUser,
   loginUser,
@@ -534,4 +547,5 @@ export {
   followOrUnfollowUser,
   getFollowersandFollowing,
   getNotifications,
+  checkUser,
 };
