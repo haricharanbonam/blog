@@ -6,6 +6,7 @@ import API from "../utils/axios";
 const BlogHeader = ({ blog }) => {
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(blog.isSaved);
+  console.log("the thing is ", blog?.author);
   const handleSave = async (blogId) => {
     try {
       setIsSaved((prev) => !prev);
@@ -35,7 +36,6 @@ const BlogHeader = ({ blog }) => {
           title={isSaved ? "Unsave" : "Save"}
         >
           {isSaved ? (
-        
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="currentColor"
@@ -64,9 +64,18 @@ const BlogHeader = ({ blog }) => {
         className="flex items-center cursor-pointer"
         onClick={() => navigate(`/profile/${blog.author.username}`)}
       >
-        <div className="bg-indigo-100 dark:bg-indigo-900 h-12 w-12 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-semibold text-xl">
-          {blog.author.fullName.charAt(0).toUpperCase()}
+        <div className="h-12 w-12 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-semibold text-xl">
+          {blog.author?.avatarUrl ? (
+            <img
+              src={blog.author.avatarUrl}
+              alt={blog.author.fullName}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            blog.author?.fullName?.charAt(0)?.toUpperCase()
+          )}
         </div>
+
         <div className="ml-4">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
             {blog.author.fullName}

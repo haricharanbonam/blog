@@ -18,6 +18,25 @@ const generateAccessTokenAndRefreshTokens = async (userId) => {
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
+    // i dont want to change the refresh i want the user to be logged out after a  certain time ok ?
+
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something went wrong while generating referesh and access token"
+    );
+  }
+};
+const generateAccessToken = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    const accessToken = user.generateAccessToken();
+    // const refreshToken = user.generateRefreshToken();
+    // user.refreshToken = refreshToken;
+    // await user.save({ validateBeforeSave: false });
+    // return { accessToken, refreshToken };
+    // i dont want to change the refresh i want the user to be logged out after a  certain time ok ?
+    return { accessToken };
   } catch (error) {
     throw new ApiError(
       500,
@@ -98,7 +117,6 @@ const loginUser = asyncHandler(async (req, res) => {
   const loggedInUser = await User.findById(findUser._id).select(
     "-password -refreshToken"
   );
-
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -136,9 +154,11 @@ const logoutUser = asyncHandler(async (req, res) => {
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
+  console.log("all cookies are ", req.cookies);
   if (!incomingRefreshToken) {
     throw new ApiError(401, "unauthorized request");
   }
+  console.log("the token that came ", incomingRefreshToken);
   try {
     const decodedToken = jwt.verify(
       incomingRefreshToken,
@@ -155,18 +175,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new ApiError(401, "Refresh token is expired or used");
     }
 
-    const { accessToken } = await generateAccessTokenAndRefreshTokens(user._id);
-
+    const { accessToken } = await generateAccessToken(user._id);
+    console.log("upto here so fine");
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
-      .json(
-        new ApiResponse(
-          200,
-          { accessToken, refreshToken },
-          "Access token refreshed"
-        )
-      );
+      .json(new ApiResponse(200, "Access token refreshed"));
   } catch (error) {
     throw new ApiError(401, error?.message || "Invalid refresh token");
   }
@@ -525,7 +539,9 @@ const checkUser = asyncHandler(async (req, res) => {
   }
   try {
     const decodedUser = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    const user = await User.findById(decodedUser?._id).select("avatarUrl");
+    const user = await User.findById(decodedUser?._id).select(
+      "avatarUrl username"
+    );
     if (!user) {
       throw new ApiError(401, "INvalid Token");
     }

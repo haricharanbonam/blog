@@ -7,9 +7,11 @@ export const DB_NAME = "haricharan";
 //   path: "/",
 // };
 
+const isLocal = process.env.NODE_ENV === "local";
+
 export const options = {
   httpOnly: true,
-  secure: false,
-  sameSite: "lax",
+  secure: !isLocal,
+  sameSite: isLocal ? "lax" : "none",
   path: "/",
 };

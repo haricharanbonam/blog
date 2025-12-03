@@ -177,13 +177,13 @@ const viewBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(id)
     .populate({
       path: "author",
-      select: "fullName username",
+      select: "fullName username avatarUrl",
     })
     .populate({
       path: "comments",
       populate: {
         path: "user",
-        select: "fullName username",
+        select: "fullName username avatarUrl",
       },
     });
 
@@ -212,11 +212,12 @@ const viewBlog = asyncHandler(async (req, res) => {
       author: {
         fullName: comment.user.fullName,
         username: comment.user.username,
+        avatarUrl:comment.user.avatarUrl
       },
       createdAt: comment.createdAt,
     })),
   };
-
+console.log("the thing we are gonna send is",formattedBlog.comments);
   return res
     .status(200)
     .json(new ApiResponse(200, formattedBlog, "Blog fetched successfully"));

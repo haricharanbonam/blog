@@ -67,13 +67,23 @@ const CommentSection = ({
         ) : (
           blog.comments.map((comment) => (
             <div key={comment._id} className="flex space-x-3">
+
+
               <div
                 onClick={() =>
                   navigate(`/profile/${comment?.author?.username}`)
                 }
-                className="bg-gray-200 cursor-pointer dark:bg-gray-700 h-10 w-10 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-semibold"
+                className="h-12 w-12 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-semibold text-xl"
               >
-                {comment?.author?.fullName.charAt(0).toUpperCase()}
+                {comment.author?.avatarUrl ? (
+                  <img
+                    src={comment.author.avatarUrl}
+                    alt={comment.author.fullName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                    comment?.author?.fullName.charAt(0).toUpperCase()
+                )}
               </div>
               <div className="flex-1">
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">

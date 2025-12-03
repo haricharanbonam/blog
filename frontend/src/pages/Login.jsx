@@ -8,11 +8,13 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading ,setLoading]=useState(false);
    const { login } = useAuth(); 
 
   const navigate = useNavigate();
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await API.post("/user/login", {
         email,
@@ -23,7 +25,7 @@ function Login() {
         const { accessToken, refreshToken, user } = res.data.data;
         console.log(accessToken, refreshToken);
 
-        login(); // Update auth state
+        login(); 
 
         if (res.data.data.user.isProfileCompleted) {
           console.log("it made it here");
@@ -34,8 +36,13 @@ function Login() {
       } else {
         console.error("Login failed with status:", res.status);
       }
+     
+
     } catch (err) {
       console.error("Login error:", err);
+    }
+    finally{
+       setLoading(false);
     }
   };
 
@@ -158,10 +165,16 @@ function Login() {
                 <button
                   type="button"
                   onClick={handleLogin}
-                  className="w-full shadow-xl py-2.5 px-4 text-[15px] font-medium tracking-wide rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none cursor-pointer"
+                  disabled={loading}
+                  className="w-full shadow-xl py-2.5 px-4 text-[15px] font-medium tracking-wide rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none cursor-pointer flex items-center justify-center"
                 >
-                  Sign in
+                  {loading ? (
+                    <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    "Sign in"
+                  )}
                 </button>
+
                 <p className="text-sm !mt-6 text-center text-slate-600">
                   Don't have an account{" "}
                   <a
