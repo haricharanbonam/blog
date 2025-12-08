@@ -8,7 +8,7 @@ function FollowGrid({ persons, onFollow, onClick }) {
       {persons.length === 0 && (
         <div className="col-span-3 text-center text-gray-500">
           {" "}
-           No users found
+          No users found
         </div>
       )}
       {persons.length != 0 &&

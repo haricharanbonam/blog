@@ -5,6 +5,8 @@ import { useRef } from "react";
 import { uploadFile } from "../utils/uploadFile";
 import Popup from "../utils/Popup";
 import BlogGrid from "../components/BlogGrid";
+import FollowGrid from "../components/Follow/FollowGrid";
+import { X } from "lucide-react";
 const Profile = () => {
   const { username } = useParams();
   const [userData, setUserData] = useState(null);
@@ -13,6 +15,10 @@ const Profile = () => {
   const [showpopup, setShowPopup] = useState(false);
   const [PopupMessage, setPopupMessage] = useState("");
   const [isFollowing, setIsFollowing] = useState(true);
+  const [showFollowModal, setShowFollowModal] = useState(false);
+  const [toggleOn, setToggleOn] = useState(true); // true = followers, false = following
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
   const fileInputRef = useRef(null);
   const [newData, setNewData] = useState({
     fullName: "",
@@ -180,9 +186,16 @@ const Profile = () => {
             </button>
           </div>
           <p
-          className="cursor-pointer "
-            onClick={() => {
-              navigate(`/followers/${userData.username}`);
+            className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium"
+            onClick={async () => {
+              try {
+                const res = await API.get(`/user/followinfo/${username}`);
+                setFollowers(res.data.followers);
+                setFollowing(res.data.following);
+                setShowFollowModal(true);
+              } catch (err) {
+                console.error("Error fetching followers and following:", err);
+              }
             }}
           >
             Click to view
@@ -317,6 +330,53 @@ const Profile = () => {
       )}
       {showpopup && (
         <Popup message={PopupMessage} onClose={() => setShowPopup(false)} />
+      )}
+      {showFollowModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+          <div className="relative bg-white rounded-xl shadow-lg w-96 p-4">
+            {/* Close Button */}
+            <button
+              className="absolute top-3 right-3 text-gray-600 hover:text-black transition"
+              onClick={() => setShowFollowModal(false)}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex border-b border-gray-300 mt-2">
+              <button
+                className={`flex-1 py-2 text-center font-medium ${
+                  toggleOn
+                    ? "text-black relative after:absolute after:bottom-0 after:left-1/4 after:w-1/2 after:h-0.5 after:bg-black"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setToggleOn(true)}
+              >
+                Followers
+              </button>
+              <button
+                className={`flex-1 py-2 text-center font-medium ${
+                  !toggleOn
+                    ? "text-black relative after:absolute after:bottom-0 after:left-1/4 after:w-1/2 after:h-0.5 after:bg-black"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setToggleOn(false)}
+              >
+                Following
+              </button>
+            </div>
+
+            <div className="mt-4 max-h-96 overflow-y-auto">
+              <FollowGrid
+                persons={toggleOn ? followers : following}
+                onFollow={() => {}}
+                onClick={(person) => {
+                  setShowFollowModal(false);
+                  navigate(`/profile/${person.username}`);
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
