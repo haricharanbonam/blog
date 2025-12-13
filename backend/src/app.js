@@ -65,6 +65,10 @@ app.use(cookieParser());
 app.use("/user", userRouter);
 
 app.use("/blog", blogRouter);
+
+app.all("/", () => {
+  console.log("check u r routes pal");
+});
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.statusCode || 500).json({

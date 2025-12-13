@@ -21,4 +21,13 @@ blogRouter.get("/view/:id", verifyJWT, viewBlog);
 // blogRouter.put("/dislike/:id", verifyJWT, toggleDislike);
 blogRouter.get("/myblogs", verifyJWT, myBlogs);
 blogRouter.post("/save/:id", verifyJWT, handleSave);
+
+blogRouter.use((req, res) => {
+  console.log("❌ User route not found:", req.originalUrl);
+  res.status(404).json({
+    success: false,
+    message: "User route does not exist",
+    path: req.originalUrl,
+  });
+});
 export default blogRouter;

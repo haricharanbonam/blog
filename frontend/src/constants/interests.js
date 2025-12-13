@@ -37,3 +37,6 @@ export const INTERESTS = [
   "SQL",
   "DSA",
 ];
+
+export const GOOGLE_CLIENT_ID =
+  "305423745001-pmemvj79vh4jmcc24fjkgna4totg018p.apps.googleusercontent.com";

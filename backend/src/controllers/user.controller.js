@@ -9,6 +9,8 @@ import { Follow } from "../models/Follow.model.js";
 import jwt from "jsonwebtoken";
 import sendEmail from "../utils/SendEmail.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { generateUsername } from "../constants.js";
+import axios from "axios"
 
 const generateAccessTokenAndRefreshTokens = async (userId) => {
   try {
@@ -102,8 +104,15 @@ const loginUser = asyncHandler(async (req, res) => {
   const findUser = await User.findOne({
     $or: [{ username }, { email }],
   });
+
+  // ✅ FIX: Check if user exists FIRST
   if (!findUser) {
     throw new ApiError(404, "User does not exist");
+  }
+
+  // ✅ NOW check if Google user
+  if (findUser.isGoogleUser) {
+    throw new ApiError(400, "User can only login through Google");
   }
 
   const isPasswordValid = await findUser.isPasswordCorrect(password);
@@ -117,6 +126,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const loggedInUser = await User.findById(findUser._id).select(
     "-password -refreshToken"
   );
+
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -550,6 +560,211 @@ const checkUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "token is expired");
   }
 });
+
+
+const registerWithGoogle = asyncHandler(async (req, res) => {
+  const { code, redirectUri } = req.body;
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+  console.log("made it to the top");
+  if (!code) {
+    console.error("❌ Missing authorization code");
+    return res
+      .status(400)
+      .json({ success: false, message: "Authorization code is missing" });
+  }
+
+  try {
+    const finalRedirect = redirectUri;
+
+    let tokenResponse;
+    try {
+      tokenResponse = await axios.post("https://oauth2.googleapis.com/token", {
+        code,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: finalRedirect,
+        grant_type: "authorization_code",
+      });
+    } catch (tokenErr) {
+      console.error(
+        "🔴 Token Exchange Failed:",
+        tokenErr.response?.data || tokenErr.message
+      );
+      return res.status(400).json({
+        success: false,
+        message:
+          tokenErr.response?.data?.error_description ||
+          "Token exchange failed.",
+      });
+    }
+
+    const { access_token } = tokenResponse.data;
+    if (!access_token) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "No access token received from Google",
+        });
+    }
+
+    let googleUser;
+
+    try {
+      const userInfoResponse = await axios.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: { Authorization: `Bearer ${access_token}` },
+        }
+      );
+      googleUser = userInfoResponse.data;
+    } catch (userErr) {
+      console.error(
+        "🔴 Failed to fetch Google user info:",
+        userErr.response?.data || userErr.message
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch Google user info" });
+    }
+console.log("fetched google user",googleUser);
+    const { email, name, picture } = googleUser || {};
+
+    const check = await User.findOne({ email });
+
+    if (check) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, {}, "Email already exists"));
+    }
+
+    const newUser = new User({
+      isGoogleUser: true,
+      fullName: name,
+      email,
+      password: "",
+      username: generateUsername(name),
+      avatarUrl: picture || "",
+    });
+
+    await newUser.save({ validateBeforeSave: false });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "User registered successfully"));
+  } catch (error) {
+    console.error("🔴 Registration Error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+
+const loginWithGoogle = asyncHandler(async (req, res) => {
+  const { code, redirectUri } = req.body;
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+  console.log("made it to the top of google login");
+
+  if (!code) {
+    throw new ApiError(400, "Authorization code is missing");
+  }
+
+  try {
+    const finalRedirect = redirectUri;
+
+    let tokenResponse;
+    try {
+      tokenResponse = await axios.post("https://oauth2.googleapis.com/token", {
+        code,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: finalRedirect,
+        grant_type: "authorization_code",
+      });
+    } catch (tokenErr) {
+      console.error(
+        "🔴 Token Exchange Failed:",
+        tokenErr.response?.data || tokenErr.message
+      );
+      throw new ApiError(
+        400,
+        tokenErr.response?.data?.error_description || "Token exchange failed."
+      );
+    }
+
+    const { access_token } = tokenResponse.data;
+    if (!access_token) {
+      throw new ApiError(400, "No access token received from Google");
+    }
+
+    let googleUser;
+
+    try {
+      const userInfoResponse = await axios.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: { Authorization: `Bearer ${access_token}` },
+        }
+      );
+      googleUser = userInfoResponse.data;
+    } catch (userErr) {
+      console.error(
+        "🔴 Failed to fetch Google user info:",
+        userErr.response?.data || userErr.message
+      );
+      throw new ApiError(500, "Failed to fetch Google user info");
+    }
+
+    console.log("fetched google user", googleUser);
+    const { email } = googleUser || {};
+
+    // ✅ Check if user exists
+    const findUser = await User.findOne({ email });
+
+    if (!findUser) {
+      throw new ApiError(404, "User does not exist. Please sign up first.");
+    }
+
+    // ✅ Check if user registered with Google
+    if (!findUser.isGoogleUser) {
+      throw new ApiError(
+        400,
+        "This email is registered with password. Please use regular login."
+      );
+    }
+
+    // ✅ Use the same helper function as normal login
+    const { accessToken, refreshToken } =
+      await generateAccessTokenAndRefreshTokens(findUser._id);
+
+    const loggedInUser = await User.findById(findUser._id).select(
+      "-password -refreshToken"
+    );
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { user: loggedInUser, accessToken, refreshToken },
+          "login success"
+        )
+      );
+  } catch (error) {
+    // ✅ If it's already an ApiError, throw it as is
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    console.error("🔴 Login Error:", error);
+    throw new ApiError(500, "Internal server error");
+  }
+});
+
 export {
   registerUser,
   loginUser,
@@ -564,4 +779,6 @@ export {
   getFollowersandFollowing,
   getNotifications,
   checkUser,
+  registerWithGoogle,
+  loginWithGoogle
 };

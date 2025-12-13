@@ -4,6 +4,11 @@ import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
+    isGoogleUser:
+    {
+      type:Boolean,
+      default:false
+    },
     fullName: {
       type: String,
       required: true,
