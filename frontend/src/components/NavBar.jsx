@@ -31,46 +31,46 @@ const Navbar = () => {
   },[])
 
   return (
-    <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center">
-      <div className="text-2xl font-extrabold text-indigo-600 tracking-wide">
+    <nav className="bg-[#0a0a0a] border-b border-white/10 px-6 py-4 flex justify-between items-center relative z-50">
+      <div className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 tracking-wide cursor-pointer" onClick={()=>navigate('/')}>
         BlogX
       </div>
 
-      <div className="flex space-x-6">
+      <div className="flex space-x-8">
         <Link
-          to="/blogs"
-          className="text-gray-700 hover:text-indigo-600 font-medium transition"
+          to="/"
+          className="text-slate-300 hover:text-white font-medium transition-colors duration-200"
         >
           Blogs
         </Link>
         <Link
           to="/create"
-          className="text-gray-700 hover:text-indigo-600 font-medium transition"
+          className="text-slate-300 hover:text-white font-medium transition-colors duration-200"
         >
           Create
         </Link>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-6">
         <NotificationBell notifications={data} />
 
-        <Link to={`/profile/${user?.username}`} title="Profile">
-          {user.avatarUrl ? (
+        <Link to={`/profile/${user?.username}`} title="Profile" className="hover:opacity-80 transition-opacity">
+          {user?.avatarUrl ? (
             <img
-              src={user.avatarUrl}
+              src={user?.avatarUrl}
               alt="User Avatar"
-              className="w-9 h-9 rounded-full object-cover"
+              className="w-9 h-9 rounded-full object-cover border-2 border-purple-500/50"
             />
           ) : (
             <FaUserCircle
               size={28}
-              className="text-gray-600 hover:text-indigo-600 transition"
+              className="text-slate-300 hover:text-white transition"
             />
           )}
         </Link>
         <button
           onClick={handleLogout}
-          className="px-4 py-1 rounded-full border border-red-500 text-red-500 hover:bg-red-50 transition"
+          className="px-5 py-1.5 rounded-full border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 text-sm font-medium"
         >
           Logout
         </button>
