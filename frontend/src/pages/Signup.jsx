@@ -61,6 +61,8 @@ const SignupForm = () => {
   });
 
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorField, setErrorField] = useState(null);
 
   const handleChange = (e) => {
     setFormData({
@@ -78,12 +80,15 @@ const SignupForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorField(null);
+    setMessage("");
 
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
+    setLoading(true);
     try {
       const res = await API.post("/user/register", formData, {
         withCredentials: true,
@@ -95,13 +100,18 @@ const SignupForm = () => {
       }
     } catch (err) {
       console.log(err.response);
-      if (err.response?.status === 409 && err.response.data?.message) {
-        setMessage(err.response.data.message); // "User with email / username already exists"
-      } else if (err.response?.data?.message) {
-        setMessage(err.response.data.message); // Any other backend message
-      } else {
-        setMessage("Something went wrong. Please try again."); // Network/server error
+      const errorMessage = err.response?.data?.message || "";
+      setMessage(errorMessage || "Something went wrong. Please try again.");
+
+      if (err.response?.status === 409) {
+        if (errorMessage.toLowerCase().includes("email")) {
+          setErrorField("email");
+        } else if (errorMessage.toLowerCase().includes("username")) {
+          setErrorField("username");
+        }
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -147,7 +157,11 @@ const SignupForm = () => {
                   name="username"
                   type="text"
                   required
-                  className="w-full text-sm text-slate-900 border border-slate-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
+                  className={`w-full text-sm text-slate-900 border pl-4 pr-10 py-3 rounded-lg outline-blue-600 ${
+                    errorField === "username"
+                      ? "border-red-500"
+                      : "border-slate-300"
+                  }`}
                   placeholder="Enter username"
                 />
               </div>
@@ -162,7 +176,9 @@ const SignupForm = () => {
                   name="email"
                   type="email"
                   required
-                  className="w-full text-sm text-slate-900 border border-slate-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
+                  className={`w-full text-sm text-slate-900 border pl-4 pr-10 py-3 rounded-lg outline-blue-600 ${
+                    errorField === "email" ? "border-red-500" : "border-slate-300"
+                  }`}
                   placeholder="Enter email"
                 />
               </div>
@@ -200,10 +216,16 @@ const SignupForm = () => {
               <div className="!mt-12">
                 <button
                   type="submit"
-                  className="w-full shadow-xl py-2.5 px-4 text-[15px] font-medium tracking-wide rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none cursor-pointer"
+                  disabled={loading}
+                  className="w-full shadow-xl py-2.5 px-4 text-[15px] font-medium tracking-wide rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none cursor-pointer flex items-center justify-center"
                 >
-                  Sign Up
+                  {loading ? (
+                    <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    "Sign Up"
+                  )}
                 </button>
+
                 {/* Add this after your regular Sign Up button */}
                 <div className="relative flex py-5 items-center">
                   <div className="flex-grow border-t border-slate-300"></div>

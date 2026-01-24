@@ -260,6 +260,25 @@ const handleSave = asyncHandler(async (req, res) => {
   });
 });
 
+const searchBlogs = asyncHandler(async (req, res) => {
+  const { query } = req.query;
+  console.log("made it here mf");
+
+  if (!query || query.trim() === "") {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, [], "No query provided, returning empty list"));
+  }
+
+  const blogs = await Blog.find({
+    title: { $regex: query, $options: "i" },
+  }).populate("author", "fullName username avatarUrl");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, blogs, "Blogs fetched successfully"));
+});
+
 export {
   createBlog,
   getBlogsonInterest,
@@ -269,4 +288,5 @@ export {
   viewBlog,
   myBlogs,
   handleSave,
+  searchBlogs,
 };

@@ -7,6 +7,7 @@ import {
   // toggleDislike,
   toggleLike,
   viewBlog,
+  searchBlogs,
 } from "../controllers/blog.controller.js";
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -21,6 +22,8 @@ blogRouter.get("/view/:id", verifyJWT, viewBlog);
 // blogRouter.put("/dislike/:id", verifyJWT, toggleDislike);
 blogRouter.get("/myblogs", verifyJWT, myBlogs);
 blogRouter.post("/save/:id", verifyJWT, handleSave);
+blogRouter.get("/search", verifyJWT, searchBlogs);
+
 
 blogRouter.use((req, res) => {
   console.log("❌ User route not found:", req.originalUrl);

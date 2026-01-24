@@ -62,7 +62,14 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (existedUser) {
-    throw new ApiError(409, "User with email / username already exists");
+    if (existedUser.email === email.toLowerCase()) {
+      throw new ApiError(409, "User with email already exists");
+    }
+    if (existedUser.username === username.toLowerCase()) {
+      throw new ApiError(409, "User with username already exists");
+    }
+    // Fallback if both match or casing difference (though we lowercased comparisons)
+    throw new ApiError(409, "User with email or username already exists");
   }
 
   const user = await User.create({

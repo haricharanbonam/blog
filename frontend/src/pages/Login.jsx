@@ -72,9 +72,16 @@ function Login() {
       `&state=login`;
   };
 
+  const [error, setError] = useState("");
+
+
+
   const navigate = useNavigate();
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+
+
     setLoading(true);
     try {
       const res = await API.post("/user/login", {
@@ -94,11 +101,10 @@ function Login() {
         } else {
           navigate("/complete-profile");
         }
-      } else {
-        console.error("Login failed with status:", res.status);
-      }
+      } 
     } catch (err) {
       console.error("Login error:", err);
+      setError(err.response?.data?.message || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -218,6 +224,10 @@ function Login() {
                   </a>
                 </div>
               </div>
+              
+              {error && (
+                <p className="text-red-600 text-sm mt-2">{error}</p>
+              )}
 
               <div className="!mt-12">
                 <button
