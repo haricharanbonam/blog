@@ -19,12 +19,14 @@ const Blog = () => {
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [loadingButton,setLoadingButton]=useState(false);
   useEffect(() => {
     const loadBlogs = async () => {
       try {
         const res = await API.post(`/blog/${page}`, {
           withCredentials: true,
         });
+        setLoadingButton(false);
         if(res.data.data.length==0)
         {
           setHasMore(false);
@@ -47,8 +49,10 @@ const Blog = () => {
 
   const handleLoadMore = ()=>
   {
+    setLoadingButton(true);
     setPage(prev=>prev+1);
-  }
+    
+  } 
   useEffect(() => {
     if (!isSearching) {
         if (selectedCategory === "All") {
@@ -93,7 +97,9 @@ const Blog = () => {
     navigate(`/blog/${id}`);
   };
 
-  if (loading) return <div className="text-center mt-10">Loading blogs...</div>;
+  if (loading) return (      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-b-6 border-purple-500"></div>
+      </div>);
   if (error)
     return <div className="text-center mt-10 text-red-500">{error}</div>;
 
@@ -150,7 +156,7 @@ const Blog = () => {
                     onClick={handleLoadMore}
                     className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-lg rounded-full shadow-lg shadow-purple-900/20 hover:scale-105 hover:shadow-purple-900/40 transition-all duration-300"
                     >
-                    Explore More
+                    {loadingButton ? "Loading ..":"Explore More"}
                     </button>
                 )}
                 </div>

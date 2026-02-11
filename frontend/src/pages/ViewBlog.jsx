@@ -9,6 +9,7 @@ import BlogContent from "../components/BlogContent";
 import BlogTags from "../components/BlogTags";
 import BlogActions from "../components/BlogActions";
 import CommentSection from "../components/CommentSection";
+import Navbar from "../components/NavBar";
 
 const ViewBlog = () => {
   const { id } = useParams();
@@ -34,6 +35,7 @@ const ViewBlog = () => {
     };
     fetchBlog();
   }, [id]);
+
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     setCommentLoading(true);
@@ -76,46 +78,65 @@ const ViewBlog = () => {
     }
   };
 
-  if (loading) return <div className="text-center mt-10">Loading blog...</div>;
+  if (loading)
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-b-6 border-purple-500"></div>
+      </div>
+    );
+
   if (error)
-    return <div className="text-red-500 text-center mt-10">{error}</div>;
-  if (!blog) return <div className="text-center mt-10">Blog not found</div>;
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-red-500 text-center">{error}</div>
+      </div>
+    );
+
+  if (!blog)
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-white text-center">Blog not found</div>
+      </div>
+    );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 text-white">
-      <button
-        onClick={() => navigate("/")}
-        className="flex items-center text-indigo-600 dark:text-indigo-400 mb-6 hover:underline"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 mr-1"
-          viewBox="0 0 20 20"
-          fill="currentColor"
+    <div className="min-h-screen bg-[#0a0a0a]">
+      <Navbar />
+      <div className="max-w-4xl mx-auto px-4 py-8 text-white">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center text-indigo-600 dark:text-indigo-400 mb-6 hover:underline"
         >
-          <path
-            fillRule="evenodd"
-            d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-            clipRule="evenodd"
-          />
-        </svg>
-        Back to blogs
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-1"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Back to blogs
+        </button>
 
-      <article className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-        <BlogHeader blog={blog} />
-        <BlogCoverImage coverImage={blog.coverImage} />
-        <BlogContent content={blog.content} />
-        <BlogTags interests={blog.interests} />
-        <BlogActions blog={blog} handleLike={handleLike} />
-        <CommentSection
-          blog={blog}
-          comment={comment}
-          setComment={setComment}
-          commentLoading={commentLoading}
-          handleCommentSubmit={handleCommentSubmit}
-        />
-      </article>
+        <article className="bg-[#1a1a1a] rounded-xl shadow-md overflow-hidden border border-white/10">
+          <BlogHeader blog={blog} />
+          <BlogCoverImage coverImage={blog.coverImage} />
+          <BlogContent content={blog.content} />
+          <BlogTags interests={blog.interests} />
+          <BlogActions blog={blog} handleLike={handleLike} />
+          <CommentSection
+            blog={blog}
+            comment={comment}
+            setComment={setComment}
+            commentLoading={commentLoading}
+            handleCommentSubmit={handleCommentSubmit}
+          />
+        </article>
+      </div>
     </div>
   );
 };
