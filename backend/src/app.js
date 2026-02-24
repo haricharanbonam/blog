@@ -19,15 +19,17 @@ const app = express();
 //   }),
 // );
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://blog-alpha-smoky-31.vercel.app",
-    ],
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:5173",
+//       "https://blog-alpha-smoky-31.vercel.app",
+//     ],
+//     credentials: true,
+//   })
+// );
+
+app.use(cors());
 
 app.use(
   express.json({
@@ -61,6 +63,11 @@ app.use(
 app.use(express.static("public"));
 
 app.use(cookieParser());
+app.get("/",(req,res)=>
+{
+  console.log(`the req came from ip ${req.ip}`);
+  return res.end("Server is running")
+})
 
 app.use("/user", userRouter);
 
@@ -77,5 +84,6 @@ app.use((err, req, res, next) => {
     errors: err.errors || [],
   });
 });
+
 
 export { app };
