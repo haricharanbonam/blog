@@ -1,12 +1,12 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://blog-n2cx.onrender.com",
+  baseURL: "/api",
   withCredentials: true,
 });
 
 const refreshAPI = axios.create({
-  baseURL: "https://blog-n2cx.onrender.com",
+  baseURL: "/api",
   withCredentials: true,
 });
 
