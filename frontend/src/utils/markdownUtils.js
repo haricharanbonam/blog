@@ -30,7 +30,7 @@ turndown.addRule("blockquote", {
     return content
       .trim()
       .split("\n")
-      .map((line) => `> ${line}`)
+      .map((line) => (line.trim() === "" ? ">" : `> ${line}`))
       .join("\n");
   },
 });

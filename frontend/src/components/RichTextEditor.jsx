@@ -149,21 +149,21 @@ const Toolbar = ({ editor }) => {
         active={editor.isActive({ textAlign: "left" })}
         title="Align left"
       >
-        ≡
+        L
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().setTextAlign("center").run()}
         active={editor.isActive({ textAlign: "center" })}
         title="Align center"
       >
-        ≡̈
+        C
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().setTextAlign("right").run()}
         active={editor.isActive({ textAlign: "right" })}
         title="Align right"
       >
-        ≡⃗
+        R
       </ToolbarButton>
 
       <Divider />
@@ -247,10 +247,9 @@ const RichTextEditor = ({ initialMarkdown = "", onChange }) => {
   // If initialMarkdown changes externally (e.g. edit flow), reload content
   useEffect(() => {
     if (!editor || !initialMarkdown) return;
-    const currentHtml = editor.getHTML();
-    const newHtml = markdownToHtml(initialMarkdown);
-    if (currentHtml !== newHtml) {
-      editor.commands.setContent(newHtml, false);
+    const currentMarkdown = htmlToMarkdown(editor.getHTML());
+    if (currentMarkdown.trim() !== initialMarkdown.trim()) {
+      editor.commands.setContent(markdownToHtml(initialMarkdown), false);
     }
   }, [initialMarkdown, editor]);
 
