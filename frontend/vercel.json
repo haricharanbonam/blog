@@ -1,5 +1,9 @@
 {
   "rewrites": [
+      {
+      "source": "/api/(.*)",
+      "destination": "https://blog-n2cx.onrender.com/$1"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
