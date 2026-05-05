@@ -5,7 +5,7 @@ import typography from "@tailwindcss/typography";
 
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd());
-
+  console.log("is this even gonna work in verceel i doubt it ",env);
   return defineConfig({
     server: {
       proxy: {
