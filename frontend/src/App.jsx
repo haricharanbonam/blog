@@ -11,10 +11,14 @@ import ProfileCompletion from "./pages/ProfileCompletion";
 import Profile from "./pages/Profile";
 import Followers from "./components/Followers";
 import { AuthProvider,useAuth } from "./utils/AuthContext";
+import { useEffect } from "react";
 
 function AppWrapper() {
   const { isAuthenticated, loading } = useAuth();
-
+useEffect(()=>
+{
+  console.log(import.meta.env);
+},[])
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
