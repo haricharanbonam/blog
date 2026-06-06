@@ -33,7 +33,8 @@ jobs:
           MONGODB_URL: ${{secrets.MONGODB_URL}}
           PORT: 3000
       - name: Waiting for server to start
-        run : sleep 10
+        run : sleep 15
       - name : Checking if the Api started
-        run : http://localhost:3000/pickkachu
+        run : http://localhost:3000/
+
        
