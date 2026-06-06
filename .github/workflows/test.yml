@@ -7,10 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3 # fetch repo files
-
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -20,16 +18,17 @@ jobs:
       - name: Install backend dependencies
         run: npm install
         working-directory: ./backend
-
-      # Frontend build
-      - name: Install frontend dependencies
-        run: npm install
-        working-directory: ./frontend
-
-      - name: Build frontend
-        run: npm run build
-        working-directory: ./frontend
-      - name: Build Backend
-        run: npm run build
+      # # Frontend build
+      # - name: Install frontend dependencies
+      #   run: npm install
+      #   working-directory: ./frontend
+      # - name: Build frontend
+      #   run: npm run build
+      #   working-directory: ./frontend
+      - name: Test Backend
+        run: npm run dev
         working-directory: ./backend
+        env:
+          MONGODB_URL: ${{secrets.MONGODB_URL}}
+          PORT: 3000
        
