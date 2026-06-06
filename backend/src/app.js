@@ -13,7 +13,7 @@ const app = express();
 // app.set("trust proxy", true);
 // app.use() //used for middleware and conifgurations
 // app.use(
-  cors({
+  // cors({
 //     origin: process.env.CORS_ORIGIN,
 //     credentials: true,
 //   })
