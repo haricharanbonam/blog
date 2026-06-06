@@ -16,7 +16,7 @@ const app = express();
   cors({
 //     origin: process.env.CORS_ORIGIN,
 //     credentials: true,
-//   }),
+//   })
 // );
 //hey
 
