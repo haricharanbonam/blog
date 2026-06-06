@@ -13,11 +13,12 @@ const app = express();
 // app.set("trust proxy", true);
 // app.use() //used for middleware and conifgurations
 // app.use(
-//   cors({
+  // cors({
 //     origin: process.env.CORS_ORIGIN,
 //     credentials: true,
-//   }),
+//   })
 // );
+//hey
 
 app.use((req, res, next) => {
   const allowedOrigins = ["http://localhost:5173", "https://blog-alpha-smoky-31.vercel.app"];
