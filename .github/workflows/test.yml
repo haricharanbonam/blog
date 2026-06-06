@@ -26,9 +26,14 @@ jobs:
       #   run: npm run build
       #   working-directory: ./frontend
       - name: Test Backend
-        run: npm run dev
+        run: npm run dev &
+        # to prevent blocking terminal , thats the reason for infinte test
         working-directory: ./backend
         env:
           MONGODB_URL: ${{secrets.MONGODB_URL}}
           PORT: 3000
+      - name: Waiting for server to start
+        run : sleep 10
+      - name : Checking if the Api started
+        run : http://localhost:3000/pickkachu
        
