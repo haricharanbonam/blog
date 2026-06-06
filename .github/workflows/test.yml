@@ -35,6 +35,6 @@ jobs:
       - name: Waiting for server to start
         run : sleep 15
       - name : Checking if the Api started
-        run : http://localhost:3000/
+        run : curl http://localhost:3000/
 
        
